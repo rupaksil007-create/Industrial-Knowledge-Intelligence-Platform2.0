@@ -212,6 +212,10 @@ class VectorStore:
         mappings = {
             "problem statement 8": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
             "problem statement 8 about": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
+            "problem 8": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
+            "industrial knowledge intelligence": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
+            "unified asset operations brain": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
+
             "et ai hackathon": "Emerging Technology AI Hackathon Challenge Guidelines",
             "sop": "Standard Operating Procedure guidelines manual",
             "kpi": "Key Performance Indicator operational metrics"
@@ -289,7 +293,7 @@ class VectorStore:
             # 5. Run Semantic Vector search via ChromaDB
             semantic_results = self.collection.query(
                 query_texts=[expanded_query],
-                n_results=min(total_documents, 50),
+                n_results=20,
                 where=where_clause if where_clause else None
             )
             
@@ -466,7 +470,15 @@ class VectorStore:
             # 8. Sort and take top n_results
             boosted_rrf.sort(key=lambda x: x[1]["final_score"], reverse=True)
             top_matches = boosted_rrf[:n_results]
-            
+
+            # Keep pages from the same document together
+            top_matches.sort(
+                key=lambda x: (
+                    x[1]["metadata"].get("doc_name", ""),
+                    x[1]["metadata"].get("page", 0)
+                )
+            )
+        
             # 9. Format response including scores and explanation logs
             formatted_results = []
             rrf_max_theoretical = 2.0 / 61.0
