@@ -1,0 +1,14 @@
+{
+  "id": "37ed4e11-237d-4129-b216-bfef90b4cfa3",
+  "name": "D:\\Project\\Industrial Knowledge Intelligence Platform",
+  "projectResources": {
+    "resources": [
+      {
+        "gitFolder": {
+          "folderUri": "file://D:/Project/Industrial Knowledge Intelligence Platform",
+          "allowWrite": true
+        }
+      }
+    ]
+  }
+}
