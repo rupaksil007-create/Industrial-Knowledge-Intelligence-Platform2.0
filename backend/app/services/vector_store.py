@@ -10,6 +10,75 @@ from app.services.embedding import embedding_service
 
 logger = logging.getLogger(__name__)
 
+# Helper mappings for query rewriting and mapping
+NUMBER_WORDS = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
+    "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9
+}
+
+PROBLEM_TITLES = {
+    1: "AI-Powered Industrial Safety Intelligence for Zero -Harm Operations",
+    2: "AI-Driven Energy Supply Chain Resilience for Import - Dependent Economies",
+    3: "AI for Industrial EV Supply Chain & Asset Intelligence: Accelerating Net Zero",
+    4: "AI Intelligence Platform for Data Centre EPC Project Delivery",
+    5: "AI-Powered Urban Air Quality Intelligence for Smart City Intervention",
+    6: "AI for Digital Public Safety: Defeating Counterfeiting, Fraud & Digital Arrest Scams",
+    7: "AI-Driven Cyber Resilience for Critical National Infrastructure",
+    8: "AI for Industrial Knowledge Intelligence: Unified Asset & Operations Brain"
+}
+
+def extract_problem_number(query: str) -> int | None:
+    """
+    Extracts the Problem Statement number (1-9) from a user query.
+    Maps variations like "Problem 8", "PS8", "Problem Statement Eight" to their integer representation.
+    """
+    q = query.lower()
+    
+    # 1. Match patterns like "problem statement 8", "problem 8", "ps 8", "ps8"
+    pattern_num = re.search(r'\b(?:problem\s+statement|problem|ps)\s*#?(\d+)\b', q)
+    if pattern_num:
+        num = int(pattern_num.group(1))
+        if 1 <= num <= 20:
+            return num
+            
+    # 2. Match patterns like "problem statement eight", "problem eight", "ps eight"
+    pattern_word = re.search(r'\b(?:problem\s+statement|problem|ps)\s*(one|two|three|four|five|six|seven|eight|nine|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth)\b', q)
+    if pattern_word:
+        word = pattern_word.group(1)
+        return NUMBER_WORDS.get(word)
+        
+    return None
+
+def is_line_heading(line: str) -> bool:
+    """
+    Determines if a given line is a structural heading.
+    Filters out false positives starting with numbers.
+    """
+    stripped = line.strip()
+    if not stripped:
+        return False
+    
+    # 1. Check for standard uppercase headings (e.g. "PROBLEM CONTEXT")
+    if stripped.isupper() and len(stripped) < 85 and not stripped.endswith("."):
+        return True
+        
+    # 2. Check for explicit words: Section, SOP, Chapter, Problem Statement, Part, Heading
+    explicit_pattern = re.compile(
+        r'^(Section|SOP|Chapter|Problem Statement|Part|Heading)\s+\d+', 
+        re.IGNORECASE
+    )
+    if explicit_pattern.match(stripped):
+        return True
+        
+    # 3. Numbered headings with case-sensitive capital letter check: e.g. "1 AI-Powered..."
+    numbered_pattern = re.compile(r'^(\d+(?:\.\d+)*\.?)\s+([A-Z])')
+    match = numbered_pattern.match(stripped)
+    if match:
+        if len(stripped) < 150 and not stripped.endswith("."):
+            return True
+            
+    return False
+
 class BM25:
     """
     In-memory BM25 Search Implementation for Hybrid Search Reranking.
@@ -78,14 +147,8 @@ class VectorStore:
         injecting heading context into each generated chunk.
         """
         chunks = []
-        
-        # Common structural headings pattern (e.g. "Section 2.1", "Problem Statement 8", "1.0 INTRODUCTION")
-        heading_pattern = re.compile(
-            r'^((?:Section|SOP|Chapter|Problem Statement|Part|Heading)\s+\d+|^\d+(\.\d+)*)\b.*$', 
-            re.IGNORECASE
-        )
-        
         current_heading = "General Overview"
+        current_problem_statement = 0
         
         for page_obj in pages_data:
             page_num = page_obj["page"]
@@ -95,34 +158,59 @@ class VectorStore:
             page_sections = []
             current_section_lines = []
             
+            clean_lines = []
             for line in lines:
-                stripped = line.strip()
-                if not stripped:
-                    continue
-                
-                # Check if the line constitutes a heading
-                is_heading = False
-                if heading_pattern.match(stripped) or (stripped.isupper() and len(stripped) < 85 and not stripped.endswith(".")):
-                    is_heading = True
-                
-                if is_heading:
+                s = line.strip()
+                if s:
+                    clean_lines.append(s)
+                    
+            i = 0
+            while i < len(clean_lines):
+                line = clean_lines[i]
+                if is_line_heading(line):
+                    full_heading = line
+                    # Lookahead to see if heading spans to the next line
+                    if i + 1 < len(clean_lines):
+                        next_line = clean_lines[i+1]
+                        if (not is_line_heading(next_line) and 
+                            not next_line.lower().startswith("theme:") and 
+                            len(next_line) < 60 and 
+                            not full_heading.endswith(".")):
+                            full_heading = f"{full_heading} {next_line}"
+                            i += 1
+                    
+                    # Normalize problem statements starting with digits (e.g. "8 AI for...")
+                    digit_match = re.match(r'^(\d+)\s+(.*)$', full_heading)
+                    if digit_match:
+                        num_str = digit_match.group(1)
+                        title_str = digit_match.group(2)
+                        if num_str.isdigit() and len(num_str) <= 2:
+                            full_heading = f"Problem Statement {num_str}: {title_str}"
+                            current_problem_statement = int(num_str)
+                    
                     if current_section_lines:
                         section_text = " ".join(current_section_lines)
-                        page_sections.append((current_heading, section_text))
+                        page_sections.append((current_heading, section_text, current_problem_statement))
                         current_section_lines = []
-                    current_heading = stripped
+                    current_heading = full_heading
                 else:
-                    current_section_lines.append(stripped)
-            
+                    current_section_lines.append(line)
+                i += 1
+                
             # Append remaining content on the page
             if current_section_lines:
                 section_text = " ".join(current_section_lines)
-                page_sections.append((current_heading, section_text))
+                page_sections.append((current_heading, section_text, current_problem_statement))
                 
             # Chunk the section texts preserving headings & overlap
-            for heading, section_text in page_sections:
+            for heading, section_text, prob_num in page_sections:
                 if not section_text:
                     continue
+                
+                # Format heading context for sub-sections to preserve problem statement scope
+                display_heading = heading
+                if prob_num and not heading.startswith("Problem Statement"):
+                    display_heading = f"Problem Statement {prob_num}: {heading}"
                 
                 start = 0
                 while start < len(section_text):
@@ -136,11 +224,12 @@ class VectorStore:
                     chunk_body = section_text[start:end].strip()
                     if chunk_body:
                         # Prepend section heading context
-                        full_chunk_text = f"[Section: {heading}]\n{chunk_body}"
+                        full_chunk_text = f"[Section: {display_heading}]\n{chunk_body}"
                         chunks.append({
                             "text": full_chunk_text,
-                            "heading": heading,
-                            "page": page_num
+                            "heading": display_heading,
+                            "page": page_num,
+                            "problem_statement_num": prob_num
                         })
                     
                     start = end - chunk_overlap
@@ -179,6 +268,10 @@ class VectorStore:
                 chunk_id = f"{doc_id}_chunk_{idx}"
                 documents.append(chunk["text"])
                 ids.append(chunk_id)
+                
+                heading = chunk["heading"]
+                prob_num = chunk.get("problem_statement_num") or 0
+                
                 metadatas.append({
                     "doc_id": doc_id,
                     "doc_name": doc_name,
@@ -186,7 +279,8 @@ class VectorStore:
                     "chunk_index": idx,
                     "upload_date": upload_date,
                     "doc_type": doc_type,
-                    "heading": chunk["heading"]
+                    "heading": heading,
+                    "problem_statement_num": prob_num
                 })
                 
             # Add to collection
@@ -208,14 +302,14 @@ class VectorStore:
         q_lower = query.lower()
         expansions = []
         
-        # Rule-based expansions for problem statements & hackathon terms
+        # Extract problem number if any to dynamically query rewrite
+        target_problem_num = extract_problem_number(query)
+        if target_problem_num and target_problem_num in PROBLEM_TITLES:
+            title = PROBLEM_TITLES[target_problem_num]
+            expansions.append(f"Problem Statement {target_problem_num} {title}")
+            
+        # General rule-based mappings
         mappings = {
-            "problem statement 8": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
-            "problem statement 8 about": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
-            "problem 8": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
-            "industrial knowledge intelligence": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
-            "unified asset operations brain": "AI for Industrial Knowledge Intelligence Unified Asset Operations Brain",
-
             "et ai hackathon": "Emerging Technology AI Hackathon Challenge Guidelines",
             "sop": "Standard Operating Procedure guidelines manual",
             "kpi": "Key Performance Indicator operational metrics"
@@ -225,7 +319,7 @@ class VectorStore:
             if keyword in q_lower:
                 expansions.append(expansion)
                 
-        # Task 3: Detect references to target terms
+        # Detect references to target terms
         target_terms = ["judging criteria", "weightages", "evaluation focus", "scoring", "hackathon"]
         if any(term in q_lower for term in target_terms):
             expansions.append("ET AI Hackathon 2026 Problem Statements Emerging Technology Challenge Guidelines Judging Criteria Weight Weightages Evaluation Focus Scoring")
@@ -432,8 +526,41 @@ class VectorStore:
                 if heading_match_reasons:
                     boost_reasons.append(f"Section titles matched: {heading_match_reasons}")
                 
+                # Problem Statement Metadata-Aware retrieval boost and penalty
+                problem_boost = 1.0
+                target_problem_num = extract_problem_number(query)
+                if target_problem_num:
+                    is_match = False
+                    is_other_problem = False
+                    
+                    chunk_prob_num = meta.get("problem_statement_num", 0) if meta else 0
+                    if not chunk_prob_num and meta:
+                        meta_heading = meta.get("heading", "")
+                        prob_match = re.search(r'Problem Statement (\d+)', meta_heading)
+                        if prob_match:
+                            chunk_prob_num = int(prob_match.group(1))
+                            
+                    if chunk_prob_num:
+                        if chunk_prob_num == target_problem_num:
+                            is_match = True
+                        else:
+                            is_other_problem = True
+                    else:
+                        meta_heading = meta.get("heading", "") if meta else ""
+                        if f"problem statement {target_problem_num}" in meta_heading.lower():
+                            is_match = True
+                        elif "problem statement" in meta_heading.lower():
+                            is_other_problem = True
+                            
+                    if is_match:
+                        problem_boost = 25.0
+                        boost_reasons.append(f"Direct match for Problem Statement {target_problem_num}")
+                    elif is_other_problem:
+                        problem_boost = 0.05
+                        boost_reasons.append(f"Mismatch: belongs to another Problem Statement")
+
                 # Combine boosts for intermediate score
-                boost_factor = doc_name_boost * chunk_content_boost * heading_boost
+                boost_factor = doc_name_boost * chunk_content_boost * heading_boost * problem_boost
                 
                 info["doc_name_boost"] = doc_name_boost
                 info["chunk_content_boost"] = chunk_content_boost
@@ -471,13 +598,8 @@ class VectorStore:
             boosted_rrf.sort(key=lambda x: x[1]["final_score"], reverse=True)
             top_matches = boosted_rrf[:n_results]
 
-            # Keep pages from the same document together
-            top_matches.sort(
-                key=lambda x: (
-                    x[1]["metadata"].get("doc_name", ""),
-                    x[1]["metadata"].get("page", 0)
-                )
-            )
+            # Keep top matches sorted by relevance (final_score descending) to ensure correct RAG results.
+            # Do NOT sort by page number, as it overrides the ranking relevance.
         
             # 9. Format response including scores and explanation logs
             formatted_results = []
@@ -507,9 +629,10 @@ class VectorStore:
                 formatted_results.append({
                     "id": cid,
                     "text": info["text"],
-                    "doc_name": meta.get("doc_name", "Unknown"),
-                    "doc_id": meta.get("doc_id", "Unknown"),
-                    "page": meta.get("page", 0),
+                    "heading": meta.get("heading", "Unknown") if meta else "Unknown",
+                    "doc_name": meta.get("doc_name", "Unknown") if meta else "Unknown",
+                    "doc_id": meta.get("doc_id", "Unknown") if meta else "Unknown",
+                    "page": meta.get("page", 0) if meta else 0,
                     "score": display_score, # Return percentage-ready normalized score
                     "raw_score": info["final_score"],
                     "semantic_score": info["semantic_score"],
@@ -580,6 +703,47 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Error listing documents: {e}")
             return []
+
+    def reset_and_reindex_all(self) -> bool:
+        """
+        Clears the collection and re-indexes all files in the UPLOAD_DIR.
+        """
+        logger.info("Resetting ChromaDB collection...")
+        try:
+            self.client.delete_collection(self.collection_name)
+            self.collection = self.client.get_or_create_collection(
+                name=self.collection_name,
+                embedding_function=embedding_service,
+                metadata={"hnsw:space": "cosine"}
+            )
+            logger.info("ChromaDB collection reset successfully.")
+        except Exception as e:
+            logger.error(f"Failed to reset collection: {e}")
+            return False
+
+        import hashlib
+        from app.services.pdf_parser import extract_text_from_pdf
+        
+        if not os.path.exists(settings.UPLOAD_DIR):
+            logger.warning(f"Upload directory {settings.UPLOAD_DIR} does not exist.")
+            return True
+            
+        for filename in os.listdir(settings.UPLOAD_DIR):
+            if filename.lower().endswith(".pdf"):
+                file_path = os.path.join(settings.UPLOAD_DIR, filename)
+                logger.info(f"Re-indexing file: {file_path}")
+                try:
+                    doc_id = hashlib.md5(filename.encode()).hexdigest()
+                    pages_data = extract_text_from_pdf(file_path)
+                    if pages_data:
+                        self.add_document(
+                            doc_id=doc_id,
+                            doc_name=filename,
+                            pages_data=pages_data
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to index {filename}: {e}")
+        return True
 
     def delete_document(self, doc_id: str) -> bool:
         """
