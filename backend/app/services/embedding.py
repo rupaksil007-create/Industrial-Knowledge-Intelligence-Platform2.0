@@ -30,14 +30,22 @@ class IndustrialEmbeddingFunction(EmbeddingFunction):
                 self.provider = "chroma"
                 
         if self.provider == "gemini":
+            logger.info("Initializing Gemini Embedding provider...")
             if self.gemini_key:
+                masked_key = self.gemini_key[:4] + "..." + self.gemini_key[-4:] if len(self.gemini_key) > 8 else "PRESENT"
+                logger.info(f"Gemini API key is present: {masked_key}")
                 try:
                     import google.generativeai as genai
+                    logger.info("Successfully imported google.generativeai SDK")
                     genai.configure(api_key=self.gemini_key)
                     self.model_name = "models/embedding-001"
-                    logger.info("Gemini Embedding configured successfully.")
+                    logger.info(f"Gemini Embedding model '{self.model_name}' configured successfully.")
                 except ImportError:
                     logger.error("google-generativeai package not found. Falling back to local default.")
+                    self.provider = "chroma"
+                except Exception as e:
+                    logger.error(f"Failed to initialize Gemini Embedding provider: {type(e).__name__}: {e}", exc_info=True)
+                    logger.warning("Falling back to local default due to initialization error.")
                     self.provider = "chroma"
             else:
                 logger.warning("Gemini API key not set. Falling back to local default.")
@@ -52,6 +60,15 @@ class IndustrialEmbeddingFunction(EmbeddingFunction):
                 logger.error(f"Failed to initialize Chroma default embedding: {e}. Will use deterministic mock embeddings.")
 
     def __call__(self, input: Documents) -> Embeddings:
+        # Determine the target dimension based on the original configured provider to prevent ChromaDB dimension mismatch
+        target_provider = settings.EMBEDDING_PROVIDER.lower()
+        if target_provider == "openai":
+            target_dim = 1536
+        elif target_provider == "gemini":
+            target_dim = 768
+        else:
+            target_dim = 384
+
         if self.provider == "openai" and self.client:
             try:
                 response = self.client.embeddings.create(
@@ -60,7 +77,7 @@ class IndustrialEmbeddingFunction(EmbeddingFunction):
                 )
                 return [emb.embedding for emb in response.data]
             except Exception as e:
-                logger.error(f"OpenAI embedding failed: {e}. Falling back...")
+                logger.error(f"OpenAI embedding failed: {e}. Falling back to deterministic mock of dimension {target_dim}...")
                 
         elif self.provider == "gemini" and self.gemini_key:
             try:
@@ -75,25 +92,26 @@ class IndustrialEmbeddingFunction(EmbeddingFunction):
                     embeddings.append(result['embedding'])
                 return embeddings
             except Exception as e:
-                logger.error(f"Gemini embedding failed: {e}. Falling back...")
+                logger.error(f"Gemini embedding failed: {type(e).__name__}: {e}", exc_info=True)
+                logger.info(f"Falling back to deterministic mock of dimension {target_dim}...")
 
-        # Fallback 1: Local ONNX embedding function (Chroma Default)
-        if self.default_ef:
+        # If the original provider is chroma/local default, we can use the ONNX default_ef (384 dimensions)
+        if target_provider == "chroma" and self.default_ef:
             try:
                 return self.default_ef(input)
             except Exception as e:
-                logger.error(f"Local Chroma default embedding failed: {e}. Falling back to deterministic mock.")
+                logger.error(f"Local Chroma default embedding failed: {e}. Falling back to deterministic mock of dimension 384.")
 
-        # Fallback 2: Deterministic Mock Embedding Function (Offline/Test mode)
-        # Generates a 384-dimensional vector based on the text hash so it's consistent for identical texts
-        logger.warning("Generating offline mock embeddings for text input.")
+        # Fallback: Deterministic Mock Embedding Function (Offline/Test mode)
+        # Generates a vector of target_dim based on the text hash so it's consistent for identical texts
+        logger.warning(f"Generating offline mock embeddings of dimension {target_dim} for text input.")
         embeddings = []
         for text in input:
             # Seed generator with text hash to ensure determinism
             text_hash = abs(hash(text)) % (2**32)
             state = np.random.RandomState(text_hash)
-            # Create a 384-dimensional unit vector
-            vec = state.randn(384)
+            # Create a target_dim-dimensional unit vector
+            vec = state.randn(target_dim)
             norm = np.linalg.norm(vec)
             if norm > 0:
                 vec = vec / norm
