@@ -88,13 +88,13 @@ export default function Dashboard() {
   
   // UI States
   const [systemAlerts, setSystemAlerts] = useState<string[]>([]);
+  const [connectionError, setConnectionError] = useState<string>("");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Poll Backend Status and Fetch Docs on mount
   useEffect(() => {
     checkHealth();
-    fetchDocuments();
     
     // Setup interval for health polling
     const interval = setInterval(() => {
@@ -104,28 +104,96 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Automatically fetch documents when backend transitions from offline to online (resolves stale state)
+  useEffect(() => {
+    if (backendStatus === "online") {
+      fetchDocuments();
+    }
+  }, [backendStatus]);
+
   // Auto scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatLoading]);
 
-  // Check Backend Health
+  // Check Backend Health using compatible AbortController timeout
   const checkHealth = async () => {
+    const healthUrl = `${API_URL}/health`;
+    const docsUrl = `${API_URL}/documents`;
+    console.log(`[HealthCheck] Pinging health endpoint: ${healthUrl}`);
+    
+    let healthSuccess = false;
+    let healthErrorMsg = "";
+    
     try {
-      const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.warn(`[HealthCheck] Health ping timed out after 10000ms for: ${healthUrl}`);
+        controller.abort();
+      }, 10000);
+      
+      const res = await fetch(healthUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      console.log(`[HealthCheck] Health response status: ${res.status} ${res.statusText}`);
+      
       if (res.ok) {
         const data = await res.json();
         setBackendStatus("online");
+        setConnectionError("");
         setBackendConfig({
           app: data.app,
           embedding_provider: data.embedding_provider,
           llm_provider: data.llm_provider,
         });
+        healthSuccess = true;
+      } else {
+        healthErrorMsg = `HTTP Error ${res.status}: ${res.statusText}`;
+      }
+    } catch (e: any) {
+      if (e.name === "AbortError") {
+        healthErrorMsg = "Connection timed out after 10000ms";
+      } else {
+        healthErrorMsg = e.message || String(e);
+      }
+      console.error(`[HealthCheck] Health request failed: ${healthErrorMsg}`);
+    }
+    
+    // If health check succeeded, do not check fallback
+    if (healthSuccess) return;
+    
+    // Fallback: Check if documents endpoint is accessible
+    console.log(`[HealthCheck] Health check failed or timed out (${healthErrorMsg}). Attempting fallback check: ${docsUrl}`);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.warn(`[HealthCheck] Fallback documents ping timed out after 10000ms for: ${docsUrl}`);
+        controller.abort();
+      }, 10000);
+      
+      const res = await fetch(docsUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      console.log(`[HealthCheck] Fallback documents response status: ${res.status} ${res.statusText}`);
+      if (res.ok) {
+        setBackendStatus("online");
+        setConnectionError("");
+        console.log("[HealthCheck] Fallback succeeded. System is online.");
       } else {
         setBackendStatus("offline");
+        setConnectionError(`Health failed (${healthErrorMsg}) & Documents failed (HTTP ${res.status}: ${res.statusText})`);
+        console.error(`[HealthCheck] Fallback failed with status: ${res.status}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       setBackendStatus("offline");
+      let docsErrorMsg = "";
+      if (e.name === "AbortError") {
+        docsErrorMsg = "Connection timed out after 10000ms";
+      } else {
+        docsErrorMsg = e.message || String(e);
+      }
+      console.error(`[HealthCheck] Fallback request failed: ${docsErrorMsg}`);
+      setConnectionError(`Health failed (${healthErrorMsg}) & Documents failed (${docsErrorMsg})`);
     }
   };
 
@@ -471,7 +539,15 @@ export default function Dashboard() {
             <div className="mb-6 flex items-center space-x-3 bg-rose-950/30 border border-rose-500/40 text-rose-400 p-4 rounded text-sm font-mono">
               <AlertTriangle className="h-5 w-5 shrink-0" />
               <div>
-                <span className="font-bold">DATABASE COMMUNICATION FAILURE:</span> The platform is unable to ping the FastAPI backend at <code className="bg-rose-950/80 px-1.5 py-0.5 rounded">{API_URL}</code>. Please launch the backend server using <code className="bg-rose-950/80 px-1.5 py-0.5 rounded">python app/main.py</code>.
+                <span className="font-bold">DATABASE COMMUNICATION FAILURE:</span> The platform is unable to ping the FastAPI backend at <code className="bg-rose-950/80 px-1.5 py-0.5 rounded">{API_URL}</code>.
+                {connectionError && (
+                  <div className="mt-1.5 text-rose-300 font-semibold">
+                    Reason: {connectionError}
+                  </div>
+                )}
+                <div className="mt-1 text-zinc-400 text-xs">
+                  Please verify that the backend server is running using <code className="bg-rose-950/80 px-1 py-0.5 rounded">python app/main.py</code> and CORS headers are configured correctly.
+                </div>
               </div>
             </div>
           )}
