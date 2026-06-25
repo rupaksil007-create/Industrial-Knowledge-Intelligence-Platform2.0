@@ -1,6 +1,7 @@
 import logging
+import re
 from app.core.config import settings
-from app.services.vector_store import vector_store
+from app.services.vector_store import vector_store, extract_problem_number
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,8 @@ class RAGService:
             "1. Answer the query using ONLY the provided document contexts. If the context does not contain the answer, "
             "state that the information is not present in the current knowledge base.\n"
             "2. If the user asks to summarize a document, section, or problem statement, provide a clear, structured "
-            "executive summary using professional engineering terminology. Avoid raw text excerpts or conversational filler.\n"
+            "executive summary of only the requested section/problem statement. Do not include information from "
+            "other unrelated problem statements even if they are in the context. Avoid raw text excerpts or conversational filler.\n"
             "3. Always preserve source citations and page references in your text. Reference documents using their label, "
             "e.g., [Doc X] (Page Y) or (Document Name, Page Y).\n"
             "4. Structure your response clearly using markdown headings, bullet points, and tables where appropriate to "
@@ -141,44 +143,108 @@ class RAGService:
         """
         logger.info("Generating synthesized offline response from retrieved documents.")
         
-        # Look for exact word matches in search results to build a mock response
-        matched_sentences = []
-        query_words = [w.lower() for w in query.replace("?", "").split() if len(w) > 3]
+        # Determine if the query targets a specific problem statement
+        target_problem = extract_problem_number(query)
         
-        for idx, result in enumerate(search_results[:3]):
-            text = result["text"]
-            sentences = [s.strip() for s in text.split(".") if s.strip()]
+        # Find the title/heading chunk to use as the main title
+        title = None
+        for res in search_results:
+            heading = res.get("heading", "")
+            if "Problem Statement" in heading and ":" in heading and not any(sub in heading.upper() for sub in ["CONTEXT", "CHALLENGE", "TECHNOLOGIES", "DELIVERABLES", "CRITERIA", "BUILD"]):
+                title = heading
+                break
+                
+        if not title:
+            title = search_results[0].get("heading", "Problem Statement Details")
             
-            for s in sentences:
-                s_lower = s.lower()
-                # If sentence contains any key query words, consider it relevant
-                if any(qw in s_lower for qw in query_words):
-                    if s not in matched_sentences:
-                        matched_sentences.append(f"{s} (Ref: {result['doc_name']}, Page {result['page']})")
-                        
-        if matched_sentences:
-            body = " ".join(matched_sentences[:4])
-            return (
-                f"[LOCAL OFFLINE RAG MODE]\n\n"
-                f"Based on the knowledge base, I found the following relevant information:\n"
-                f"{body}.\n\n"
-                f"For further details, please consult the cited pages in the sources panel."
-            )
-        else:
-            # Fallback to general summary of top passages
-            summary_parts = []
-            for idx, result in enumerate(search_results[:2]):
-                summary_parts.append(
-                    f"From {result['doc_name']} (Page {result['page']}): \"{result['text'][:150]}...\""
-                )
-            summary_text = "\n\n".join(summary_parts)
+        # Extract sections from any retrieved chunk by looking at heading metadata
+        theme = None
+        context_parts = []
+        challenge = None
+        tech_list = []
+        deliverables = []
+        criteria = None
+        
+        for res in search_results[:15]:
+            heading = res.get("heading", "").upper()
+            text = res["text"]
+            # Clean section header tag
+            clean_text = re.sub(r'^\[Section:.*?\]\s*', '', text).strip()
             
-            return (
-                f"[LOCAL OFFLINE RAG MODE]\n\n"
-                f"No direct sentence matches were found for your query terms. However, the most relevant documents found in the database are:\n\n"
-                f"{summary_text}\n\n"
-                f"Please refine your query or review the document citations on the side."
-            )
+            # Find Theme
+            if not theme:
+                theme_match = re.search(r'Theme:\s*(.*?)(?:\n|$)', clean_text, re.IGNORECASE)
+                if theme_match:
+                    theme = theme_match.group(1).strip()
+            
+            # Find Problem Context
+            if "PROBLEM CONTEXT" in heading:
+                if clean_text and clean_text not in context_parts:
+                    context_parts.append(clean_text)
+                    
+            # Find Challenge Statement
+            if "CHALLENGE STATEMENT" in heading:
+                if clean_text and not challenge:
+                    challenge = clean_text
+                    
+            # Find Suggested Technologies
+            if "SUGGESTED TECHNOLOGIES" in heading:
+                tech_lines = [line.strip(" \t*•-") for line in clean_text.split("\n") if line.strip()]
+                for line in tech_lines:
+                    if line and line not in tech_list:
+                        tech_list.append(line)
+                                
+            # Find Expected Deliverables
+            if "EXPECTED DELIVERABLES" in heading:
+                deliv_lines = [line.strip(" \t*•-") for line in clean_text.split("\n") if line.strip()]
+                for line in deliv_lines:
+                    if line and line not in deliverables:
+                        deliverables.append(line)
+                                
+            # Find Judging Criteria
+            if "JUDGING CRITERIA" in heading:
+                if clean_text and not criteria:
+                    criteria = clean_text
+                    
+        # Construct summary response
+        summary = (
+            f"[LOCAL OFFLINE RAG MODE]\n\n"
+            f"### Executive Summary: {title}\n\n"
+        )
+        
+        if theme:
+            summary += f"**Theme**: {theme}\n\n"
+            
+        if challenge:
+            summary += f"#### Challenge Statement\n{challenge}\n\n"
+            
+        if context_parts:
+            full_context = " ".join(context_parts)
+            if len(full_context) > 750:
+                full_context = full_context[:750] + "..."
+            summary += f"#### Problem Context\n{full_context}\n\n"
+            
+        if tech_list:
+            summary += "#### Suggested Technologies\n"
+            for tech in tech_list[:8]:
+                summary += f"- {tech}\n"
+            summary += "\n"
+            
+        if deliverables:
+            summary += "#### Expected Deliverables\n"
+            for d in deliverables[:6]:
+                summary += f"- {d}\n"
+            summary += "\n"
+            
+        if criteria:
+            # Format criteria cleanly
+            clean_crit = criteria.replace("\n", " | ").strip()
+            if len(clean_crit) > 200:
+                clean_crit = clean_crit[:200] + "..."
+            summary += f"#### Judging Criteria\n{clean_crit}\n\n"
+            
+        summary += f"*Referenced from source document: {search_results[0]['doc_name']} (Page {search_results[0]['page']}).*"
+        return summary
 
 # Global instance
 rag_service = RAGService()
