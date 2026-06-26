@@ -12,6 +12,7 @@ import {
   HardHat,
   Layers,
   MessageSquare,
+  Network,
   RefreshCw,
   Search,
   Shield,
@@ -53,7 +54,7 @@ export default function Dashboard() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   // State
-  const [activeTab, setActiveTab] = useState<"dashboard" | "library" | "chat">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "library" | "chat" | "graph">("dashboard");
   const [backendStatus, setBackendStatus] = useState<"connecting" | "online" | "offline">("connecting");
   const [backendConfig, setBackendConfig] = useState({
     app: "IKIP",
@@ -91,6 +92,209 @@ export default function Dashboard() {
   const [connectionError, setConnectionError] = useState<string>("");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Knowledge Graph States
+  const [graphNodes, setGraphNodes] = useState<any[]>([]);
+  const [graphEdges, setGraphEdges] = useState<any[]>([]);
+  const [graphSearchQuery, setGraphSearchQuery] = useState("");
+  const [graphSearchResult, setGraphSearchResult] = useState<{ nodes: any[]; edges: any[] } | null>(null);
+  const [selectedNode, setSelectedNode] = useState<any | null>(null);
+  const [selectedNodeRelationships, setSelectedNodeRelationships] = useState<any[]>([]);
+  const [isGraphLoading, setIsGraphLoading] = useState(false);
+  const [graphError, setGraphError] = useState("");
+  const [nodePositions, setNodePositions] = useState<{ [key: string]: { x: number; y: number } }>({});
+  const [draggedNodeKey, setDraggedNodeKey] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Fetch Knowledge Graph Data
+  const fetchGraphData = async () => {
+    setIsGraphLoading(true);
+    setGraphError("");
+    try {
+      const nodesRes = await fetch(`${API_URL}/graph/nodes`);
+      const edgesRes = await fetch(`${API_URL}/graph/edges`);
+      if (nodesRes.ok && edgesRes.ok) {
+        const nodesData = await nodesRes.json();
+        const edgesData = await edgesRes.json();
+        setGraphNodes(nodesData);
+        setGraphEdges(edgesData);
+      } else {
+        setGraphError("Failed to fetch graph data from backend.");
+      }
+    } catch (e) {
+      setGraphError("Backend graph service is unreachable.");
+      console.error("Failed to fetch graph data", e);
+    } finally {
+      setIsGraphLoading(false);
+    }
+  };
+
+  // Handle Graph Search
+  const handleGraphSearch = async (queryText: string) => {
+    const trimmed = queryText.trim();
+    if (!trimmed) {
+      setGraphSearchResult(null);
+      return;
+    }
+    
+    setIsGraphLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/graph/search?q=${encodeURIComponent(trimmed)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setGraphSearchResult({
+          nodes: data.nodes || [],
+          edges: data.edges || []
+        });
+        
+        // Auto-select first matching node
+        if (data.nodes && data.nodes.length > 0) {
+          const firstNode = data.nodes[0];
+          setSelectedNode(firstNode);
+          const nodeKey = firstNode.name.toLowerCase();
+          const rels = (data.edges || []).filter((edge: any) => 
+            edge.source.toLowerCase() === nodeKey || edge.target.toLowerCase() === nodeKey
+          );
+          setSelectedNodeRelationships(rels);
+        } else {
+          setSelectedNode(null);
+          setSelectedNodeRelationships([]);
+        }
+      } else {
+        console.error("Graph search failed.");
+      }
+    } catch (e) {
+      console.error("Error searching graph", e);
+    } finally {
+      setIsGraphLoading(false);
+    }
+  };
+
+  // Handle Node Click
+  const handleNodeClick = async (node: any) => {
+    setSelectedNode(node);
+    try {
+      const res = await fetch(`${API_URL}/graph/entity/${encodeURIComponent(node.name)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedNodeRelationships(data.relationships || []);
+      } else {
+        // Fallback
+        const nodeKey = node.name.toLowerCase();
+        const localRels = (graphSearchResult ? graphSearchResult.edges : graphEdges).filter(
+          (edge: any) => edge.source.toLowerCase() === nodeKey || edge.target.toLowerCase() === nodeKey
+        );
+        setSelectedNodeRelationships(localRels);
+      }
+    } catch (e) {
+      console.error("Error fetching entity relationships", e);
+      const nodeKey = node.name.toLowerCase();
+      const localRels = (graphSearchResult ? graphSearchResult.edges : graphEdges).filter(
+        (edge: any) => edge.source.toLowerCase() === nodeKey || edge.target.toLowerCase() === nodeKey
+      );
+      setSelectedNodeRelationships(localRels);
+    }
+  };
+
+  // Fetch graph on tab switch
+  useEffect(() => {
+    if (activeTab === "graph") {
+      fetchGraphData();
+      setGraphSearchResult(null);
+      setSelectedNode(null);
+      setSelectedNodeRelationships([]);
+    }
+  }, [activeTab]);
+
+  // Compute node positions for layered layout
+  useEffect(() => {
+    const activeNodes = graphSearchResult ? graphSearchResult.nodes : graphNodes;
+    if (activeNodes.length === 0) return;
+
+    const width = 740;
+    const height = 410;
+    const padding = 50;
+    
+    const columnMapping: { [key: string]: number } = {
+      Locations: 0,
+      Departments: 1,
+      Equipment: 2,
+      Assets: 2,
+      Systems: 3,
+      Procedures: 4,
+      "Safety Items": 4
+    };
+
+    const finalPositions: { [key: string]: { x: number; y: number } } = {};
+    const nodeGroups: any[][] = [[], [], [], [], []];
+    
+    activeNodes.forEach(node => {
+      const colIdx = columnMapping[node.type] !== undefined ? columnMapping[node.type] : 2;
+      nodeGroups[colIdx].push(node);
+    });
+
+    const colSpacing = (width - padding * 2) / 4;
+    nodeGroups.forEach((group, colIdx) => {
+      const x = padding + colIdx * colSpacing;
+      const n = group.length;
+      if (n === 1) {
+        finalPositions[group[0].name.toLowerCase()] = { x, y: height / 2 };
+      } else if (n > 1) {
+        group.forEach((node, idx) => {
+          const y = padding + (idx * (height - padding * 2)) / (n - 1);
+          finalPositions[node.name.toLowerCase()] = { x, y };
+        });
+      }
+    });
+
+    setNodePositions(finalPositions);
+  }, [graphNodes, graphSearchResult]);
+
+  const handleMouseDown = (nodeKey: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setDraggedNodeKey(nodeKey);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!draggedNodeKey || !svgRef.current) return;
+    
+    const rect = svgRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const clampedX = Math.max(20, Math.min(rect.width - 20, x));
+    const clampedY = Math.max(20, Math.min(rect.height - 20, y));
+    
+    setNodePositions(prev => ({
+      ...prev,
+      [draggedNodeKey]: { x: clampedX, y: clampedY }
+    }));
+  };
+
+  const handleMouseUp = () => {
+    setDraggedNodeKey(null);
+  };
+
+  const getNodeStyles = (type: string) => {
+    switch (type) {
+      case "Equipment":
+        return { fill: "#f43f5e", stroke: "#fda4af", bg: "bg-rose-950/40", text: "text-rose-400", border: "border-rose-500/30" };
+      case "Assets":
+        return { fill: "#f59e0b", stroke: "#fcd34d", bg: "bg-amber-950/40", text: "text-amber-400", border: "border-amber-500/30" };
+      case "Systems":
+        return { fill: "#06b6d4", stroke: "#67e8f9", bg: "bg-cyan-950/40", text: "text-cyan-400", border: "border-cyan-500/30" };
+      case "Procedures":
+        return { fill: "#a855f7", stroke: "#d8b4fe", bg: "bg-purple-950/40", text: "text-purple-400", border: "border-purple-500/30" };
+      case "Safety Items":
+        return { fill: "#10b981", stroke: "#6ee7b7", bg: "bg-emerald-950/40", text: "text-emerald-400", border: "border-emerald-500/30" };
+      case "Departments":
+        return { fill: "#6366f1", stroke: "#a5b4fc", bg: "bg-indigo-950/40", text: "text-indigo-400", border: "border-indigo-500/30" };
+      case "Locations":
+        return { fill: "#0ea5e9", stroke: "#7dd3fc", bg: "bg-sky-950/40", text: "text-sky-400", border: "border-sky-500/30" };
+      default:
+        return { fill: "#71717a", stroke: "#d4d4d8", bg: "bg-zinc-900", text: "text-zinc-400", border: "border-zinc-800" };
+    }
+  };
 
   // Poll Backend Status and Fetch Docs on mount
   useEffect(() => {
@@ -516,6 +720,18 @@ export default function Dashboard() {
                 <MessageSquare className="h-4.5 w-4.5" />
                 <span>Intelligence Chat</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab("graph")}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded transition-all duration-200 text-sm font-medium ${
+                  activeTab === "graph"
+                    ? "bg-cyan-950/40 text-cyan-400 border-l-2 border-cyan-500 font-semibold"
+                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                }`}
+              >
+                <Network className="h-4.5 w-4.5" />
+                <span>Knowledge Graph</span>
+              </button>
             </nav>
           </div>
           
@@ -830,6 +1046,375 @@ export default function Dashboard() {
                   )}
                 </div>
                 
+              </div>
+            </div>
+          )}
+
+          {/* TAB CONTENT: KNOWLEDGE GRAPH */}
+          {activeTab === "graph" && (
+            <div className="space-y-6">
+              
+              {/* Stats & Search Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                
+                {/* Stats cards */}
+                <div className="md:col-span-1 flex space-x-4">
+                  <div className="flex-1 glass-panel p-4 rounded-lg border border-zinc-800 flex flex-col justify-between">
+                    <p className="text-[10px] font-mono uppercase text-zinc-500 font-bold">Graph Entities</p>
+                    <p className="text-2xl font-extrabold text-white mt-1 font-mono">
+                      {graphSearchResult ? graphSearchResult.nodes.length : graphNodes.length}
+                    </p>
+                  </div>
+                  <div className="flex-1 glass-panel p-4 rounded-lg border border-zinc-800 flex flex-col justify-between">
+                    <p className="text-[10px] font-mono uppercase text-zinc-500 font-bold">Relationships</p>
+                    <p className="text-2xl font-extrabold text-cyan-400 mt-1 font-mono">
+                      {graphSearchResult ? graphSearchResult.edges.length : graphEdges.length}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Graph Search Bar */}
+                <div className="md:col-span-2 flex items-center space-x-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                    <input
+                      type="text"
+                      value={graphSearchQuery}
+                      onChange={(e) => setGraphSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleGraphSearch(graphSearchQuery)}
+                      placeholder="Search entities (e.g. Pump-4) or query dependencies..."
+                      className="w-full pl-10 pr-4 py-2 rounded bg-zinc-950 text-sm border border-zinc-800 focus:outline-none focus:border-cyan-500/60 text-[#f4f4f5] font-sans"
+                    />
+                    {graphSearchResult && (
+                      <button
+                        onClick={() => {
+                          setGraphSearchQuery("");
+                          setGraphSearchResult(null);
+                          setSelectedNode(null);
+                        }}
+                        className="absolute right-3 top-2 text-xs text-cyan-500 hover:text-cyan-400 font-mono font-bold"
+                      >
+                        [Clear]
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleGraphSearch(graphSearchQuery)}
+                    className="px-4 py-2 rounded bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-xs font-bold font-mono uppercase tracking-wider transition"
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+
+              {/* Main Graph Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* SVG Graph Canvas */}
+                <div className="lg:col-span-2 glass-panel rounded-lg border border-zinc-800 p-4 bg-zinc-950/20 flex flex-col justify-between relative min-h-[480px]">
+                  <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 mb-4">
+                    <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300 flex items-center space-x-2">
+                      <Network className="h-4.5 w-4.5 text-cyan-500" />
+                      <span>Industrial Schema View</span>
+                    </h3>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      Drag nodes to organize. Click node to inspect details.
+                    </span>
+                  </div>
+
+                  {isGraphLoading ? (
+                    <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+                      <div className="h-8 w-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-xs font-mono text-cyan-400 uppercase animate-pulse">Syncing Graph Data...</p>
+                    </div>
+                  ) : graphError ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
+                      <AlertTriangle className="h-8 w-8 text-rose-500 mb-2" />
+                      <p className="text-xs font-mono text-rose-400">{graphError}</p>
+                      <button
+                        onClick={fetchGraphData}
+                        className="mt-4 px-3 py-1.5 rounded bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300 hover:bg-zinc-800 transition"
+                      >
+                        Retry Connection
+                      </button>
+                    </div>
+                  ) : (graphSearchResult ? graphSearchResult.nodes : graphNodes).length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-zinc-800 rounded bg-zinc-950/10">
+                      <Database className="h-8 w-8 text-zinc-600 mb-2" />
+                      <p className="text-xs font-mono text-zinc-500">No entities extracted yet.</p>
+                      <p className="text-[10px] text-zinc-600 font-mono mt-1">Upload files in the Knowledge Library to generate the graph.</p>
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-hidden select-none">
+                      <svg
+                        ref={svgRef}
+                        width="100%"
+                        height="420"
+                        viewBox="0 0 780 420"
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                        className="w-full h-full"
+                      >
+                        {/* Define arrow marker for directed links */}
+                        <defs>
+                          <marker
+                            id="arrow"
+                            viewBox="0 0 10 10"
+                            refX="20"
+                            refY="5"
+                            markerWidth="6"
+                            markerHeight="6"
+                            orient="auto-start-reverse"
+                          >
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3f3f46" />
+                          </marker>
+                        </defs>
+
+                        {/* Draw Edges */}
+                        {(graphSearchResult ? graphSearchResult.edges : graphEdges).map((edge, idx) => {
+                          const srcKey = edge.source.toLowerCase();
+                          const tgtKey = edge.target.toLowerCase();
+                          const posS = nodePositions[srcKey];
+                          const posT = nodePositions[tgtKey];
+                          
+                          if (!posS || !posT) return null;
+                          
+                          const isSelectedSource = selectedNode?.name.toLowerCase() === srcKey;
+                          const isSelectedTarget = selectedNode?.name.toLowerCase() === tgtKey;
+                          const isActive = isSelectedSource || isSelectedTarget;
+                          
+                          return (
+                            <g key={`edge-${idx}`}>
+                              <line
+                                x1={posS.x}
+                                y1={posS.y}
+                                x2={posT.x}
+                                y2={posT.y}
+                                stroke={isActive ? "#06b6d4" : "#27272a"}
+                                strokeWidth={isActive ? "2" : "1.2"}
+                                strokeDasharray={edge.type === "DEPENDS_ON" ? "4,4" : "none"}
+                                markerEnd="url(#arrow)"
+                                className="transition-all duration-150"
+                              />
+                              {isActive && (
+                                <text
+                                  x={(posS.x + posT.x) / 2}
+                                  y={(posS.y + posT.y) / 2 - 5}
+                                  fill="#06b6d4"
+                                  fontSize="8"
+                                  fontWeight="bold"
+                                  textAnchor="middle"
+                                  className="font-mono bg-zinc-950 px-1"
+                                >
+                                  {edge.type}
+                                </text>
+                              )}
+                            </g>
+                          );
+                        })}
+
+                        {/* Draw Nodes */}
+                        {(graphSearchResult ? graphSearchResult.nodes : graphNodes).map((node) => {
+                          const key = node.name.toLowerCase();
+                          const pos = nodePositions[key];
+                          if (!pos) return null;
+                          
+                          const styles = getNodeStyles(node.type);
+                          const isSelected = selectedNode?.name.toLowerCase() === key;
+                          const abbrev = node.name.replace(/[^a-zA-Z0-9]/g, "").slice(0, 2).toUpperCase();
+                          
+                          return (
+                            <g
+                              key={`node-${key}`}
+                              transform={`translate(${pos.x}, ${pos.y})`}
+                              onClick={() => handleNodeClick(node)}
+                              onMouseDown={(e) => handleMouseDown(key, e)}
+                              className="cursor-grab active:cursor-grabbing group"
+                            >
+                              <circle
+                                r={isSelected ? "18" : "14"}
+                                fill="transparent"
+                                stroke={styles.fill}
+                                strokeWidth="4"
+                                strokeOpacity={isSelected ? "0.3" : "0"}
+                                className="transition-all duration-200 group-hover:stroke-opacity-20 group-hover:r-16"
+                              />
+                              
+                              <circle
+                                r={isSelected ? "15" : "12"}
+                                fill="#09090b"
+                                stroke={isSelected ? "#06b6d4" : styles.fill}
+                                strokeWidth={isSelected ? "3" : "2"}
+                                className="transition-all duration-150"
+                              />
+                              
+                              <text
+                                dy=".3em"
+                                textAnchor="middle"
+                                fill={isSelected ? "#06b6d4" : styles.stroke}
+                                fontSize="8"
+                                fontWeight="bold"
+                                className="font-mono select-none pointer-events-none"
+                              >
+                                {abbrev}
+                              </text>
+                              
+                              <text
+                                y="24"
+                                textAnchor="middle"
+                                fill={isSelected ? "#22d3ee" : "#d4d4d8"}
+                                fontSize="9"
+                                fontWeight={isSelected ? "bold" : "semibold"}
+                                className="font-sans select-none pointer-events-none filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
+                              >
+                                {node.name}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-3 border-t border-zinc-800/80 pt-3 mt-4 text-[9px] font-mono text-zinc-500 justify-center">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-rose-500" />
+                      <span>Equipment</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      <span>Assets</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-cyan-500" />
+                      <span>Systems</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-purple-500" />
+                      <span>Procedures</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <span>Safety Items</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                      <span>Departments</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="h-2 w-2 rounded-full bg-sky-500" />
+                      <span>Locations</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Graph Inspector Panel */}
+                <div className="lg:col-span-1 glass-panel rounded-lg border border-zinc-800 flex flex-col overflow-hidden min-h-[480px]">
+                  <div className="px-4 py-3 bg-[#121214] border-b border-zinc-800 flex items-center space-x-2 shrink-0">
+                    <Search className="h-4.5 w-4.5 text-cyan-500" />
+                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-200">Entity Inspector</span>
+                  </div>
+
+                  <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-zinc-950/10">
+                    {!selectedNode ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center text-zinc-600 font-mono text-xs space-y-2 py-12">
+                        <Network className="h-8 w-8 text-zinc-800 animate-pulse" />
+                        <p>Select any node in the schema or search above to inspect its metadata and relationships.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 font-mono text-xs">
+                        
+                        {/* Node Name and Type */}
+                        <div className="bg-zinc-950 p-4 rounded border border-zinc-800/80 space-y-3 relative overflow-hidden">
+                          <div className={`absolute top-0 right-0 px-2 py-0.5 text-[9px] rounded-bl border-l border-b ${getNodeStyles(selectedNode.type).border} ${getNodeStyles(selectedNode.type).bg} ${getNodeStyles(selectedNode.type).text}`}>
+                            {selectedNode.type}
+                          </div>
+                          
+                          <h4 className="text-sm font-bold text-white font-sans tracking-tight pr-12">
+                            {selectedNode.name}
+                          </h4>
+                          
+                          <div className="space-y-1.5 text-[10px] text-zinc-400 pt-1">
+                            <div className="flex justify-between">
+                              <span className="text-zinc-500">Source PDF:</span>
+                              <span className="truncate max-w-[150px] text-right" title={selectedNode.source_document}>
+                                {selectedNode.source_document || "N/A"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-zinc-500">Page Reference:</span>
+                              <span className="text-cyan-400 font-bold">Page {selectedNode.page_number || "1"}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Node Relationships */}
+                        <div className="space-y-2">
+                          <h5 className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 border-b border-zinc-800/80 pb-1.5">
+                            Connected Relationships ({selectedNodeRelationships.length})
+                          </h5>
+                          
+                          {selectedNodeRelationships.length === 0 ? (
+                            <p className="text-zinc-600 italic text-[10px] py-2">No active relationships found.</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {selectedNodeRelationships.map((rel, idx) => {
+                                const isSource = rel.source.toLowerCase() === selectedNode.name.toLowerCase();
+                                const connectedName = isSource ? rel.target : rel.source;
+                                const connectedNodeObj = (graphSearchResult ? graphSearchResult.nodes : graphNodes).find(
+                                  n => n.name.toLowerCase() === connectedName.toLowerCase()
+                                );
+                                const connectedType = connectedNodeObj ? connectedNodeObj.type : "Assets";
+                                
+                                return (
+                                  <div
+                                    key={idx}
+                                    className="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 flex flex-col space-y-2 hover:border-zinc-700 transition"
+                                  >
+                                    <div className="flex items-center justify-between text-[9px]">
+                                      <span className="text-cyan-400 font-bold tracking-wide uppercase px-1 py-0.5 rounded bg-cyan-950/40 border border-cyan-800/30">
+                                        {rel.type}
+                                      </span>
+                                      <span className="text-zinc-500">
+                                        {isSource ? "Outgoing" : "Incoming"}
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between pt-1">
+                                      <div className="flex items-center space-x-1.5 font-sans font-bold text-white truncate max-w-[70%] text-[11px]">
+                                        <span className="text-zinc-400 font-normal font-mono text-[9px]">
+                                          {isSource ? "To:" : "From:"}
+                                        </span>
+                                        <span className="truncate">{connectedName}</span>
+                                      </div>
+                                      
+                                      <button
+                                        onClick={() => {
+                                          if (connectedNodeObj) {
+                                            handleNodeClick(connectedNodeObj);
+                                          } else {
+                                            handleNodeClick({ name: connectedName, type: connectedType });
+                                          }
+                                        }}
+                                        className="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-cyan-900/30 hover:text-cyan-400 text-[9px] border border-zinc-700/80 hover:border-cyan-500/20 transition-all font-mono"
+                                      >
+                                        [Inspect]
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
