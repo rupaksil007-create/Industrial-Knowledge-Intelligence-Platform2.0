@@ -295,6 +295,13 @@ class VectorStore:
             )
             logger.info(f"Successfully indexed document: {doc_name} with doc_id: {doc_id}")
             
+            # Extract Knowledge Graph
+            try:
+                from app.services.knowledge_graph import knowledge_graph_service
+                knowledge_graph_service.extract_graph_from_chunks(chunks, doc_name)
+            except Exception as e:
+                logger.error(f"Failed to extract knowledge graph: {e}")
+            
             # Invalidate BM25 cache
             self._bm25_cache = None
             self._bm25_id_to_index = {}
@@ -819,6 +826,13 @@ class VectorStore:
             )
             logger.info("ChromaDB collection reset successfully.")
             
+            # Clear knowledge graph
+            try:
+                from app.services.knowledge_graph import knowledge_graph_service
+                knowledge_graph_service.clear_graph()
+            except Exception as e:
+                logger.error(f"Failed to clear knowledge graph: {e}")
+            
             # Invalidate BM25 cache
             self._bm25_cache = None
             self._bm25_id_to_index = {}
@@ -882,6 +896,13 @@ class VectorStore:
                 if os.path.exists(file_path):
                     os.remove(file_path)
                     logger.info(f"Deleted source file: {file_path}")
+                
+                # Clean up Knowledge Graph data
+                try:
+                    from app.services.knowledge_graph import knowledge_graph_service
+                    knowledge_graph_service.delete_document_data(doc_name)
+                except Exception as e:
+                    logger.error(f"Failed to delete knowledge graph data for {doc_name}: {e}")
             
             # Invalidate BM25 cache
             self._bm25_cache = None
