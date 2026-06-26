@@ -241,3 +241,62 @@ async def debug_retrieval(
     except Exception as e:
         logger.error(f"Error in debug retrieval endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/graph/nodes")
+async def get_graph_nodes():
+    """
+    Get all nodes in the Knowledge Graph.
+    """
+    try:
+        from app.services.knowledge_graph import knowledge_graph_service
+        return knowledge_graph_service.get_all_nodes()
+    except Exception as e:
+        logger.error(f"Error getting graph nodes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/graph/edges")
+async def get_graph_edges():
+    """
+    Get all edges (relationships) in the Knowledge Graph.
+    """
+    try:
+        from app.services.knowledge_graph import knowledge_graph_service
+        return knowledge_graph_service.get_all_edges()
+    except Exception as e:
+        logger.error(f"Error getting graph edges: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/graph/entity/{name}")
+async def get_graph_entity(name: str):
+    """
+    Get details and relationships for a specific entity by name.
+    """
+    try:
+        from app.services.knowledge_graph import knowledge_graph_service
+        info = knowledge_graph_service.get_entity_info(name)
+        if not info:
+            raise HTTPException(status_code=404, detail=f"Entity '{name}' not found in the Knowledge Graph.")
+        return info
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting entity info for '{name}': {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/graph/search")
+async def search_graph(q: str = Query(..., description="Query string for graph search")):
+    """
+    Search the Knowledge Graph for entities and relationships.
+    Supports queries like:
+    - 'Show relationships for Pump-4'
+    - 'What systems depend on Boiler-12'
+    - 'Show connected assets'
+    - Or any keyword search
+    """
+    try:
+        from app.services.knowledge_graph import knowledge_graph_service
+        return knowledge_graph_service.search_graph(q)
+    except Exception as e:
+        logger.error(f"Error searching graph: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
