@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {},
   webpack: (config, { dev, isServer }) => {
     if (dev) {
       // Configure Webpack to use filesystem caching instead of memory to prevent heap bloat
