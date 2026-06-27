@@ -106,6 +106,23 @@ export default function Dashboard() {
   const [draggedNodeKey, setDraggedNodeKey] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // Advanced Visualization States
+  const [zoom, setZoom] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [hoveredEdgeIdx, setHoveredEdgeIdx] = useState<number | null>(null);
+  const [visibleTypes, setVisibleTypes] = useState<Set<string>>(new Set([
+    "Equipment",
+    "Assets",
+    "Systems",
+    "Procedures",
+    "Safety Items",
+    "Departments",
+    "Locations"
+  ]));
+  const velocitiesRef = useRef<{ [key: string]: { vx: number; vy: number } }>({});
+
   // Fetch Knowledge Graph Data
   const fetchGraphData = async () => {
     setIsGraphLoading(true);
@@ -206,15 +223,26 @@ export default function Dashboard() {
     }
   }, [activeTab]);
 
-  // Compute node positions for layered layout
+  // Run 300 iterations of force-directed simulation on data load to settle node positions
   useEffect(() => {
-    const activeNodes = graphSearchResult ? graphSearchResult.nodes : graphNodes;
-    if (activeNodes.length === 0) return;
+    const nodes = graphSearchResult ? graphSearchResult.nodes : graphNodes;
+    const edges = graphSearchResult ? graphSearchResult.edges : graphEdges;
 
-    const width = 740;
-    const height = 410;
-    const padding = 50;
-    
+    const visibleNodes = nodes.filter(node => visibleTypes.has(node.type));
+    if (visibleNodes.length === 0) return;
+
+    const visibleNodeKeys = new Set(visibleNodes.map(n => n.name.toLowerCase()));
+    const visibleEdges = edges.filter(edge => 
+      visibleNodeKeys.has(edge.source.toLowerCase()) && 
+      visibleNodeKeys.has(edge.target.toLowerCase())
+    );
+
+    const width = 780;
+    const height = 420;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // 1. Initialize positions with a column layered scheme first to avoid overlays
     const columnMapping: { [key: string]: number } = {
       Locations: 0,
       Departments: 1,
@@ -225,54 +253,279 @@ export default function Dashboard() {
       "Safety Items": 4
     };
 
-    const finalPositions: { [key: string]: { x: number; y: number } } = {};
+    const nextPositions: { [key: string]: { x: number; y: number } } = {};
     const nodeGroups: any[][] = [[], [], [], [], []];
     
-    activeNodes.forEach(node => {
+    visibleNodes.forEach(node => {
       const colIdx = columnMapping[node.type] !== undefined ? columnMapping[node.type] : 2;
       nodeGroups[colIdx].push(node);
     });
 
-    const colSpacing = (width - padding * 2) / 4;
+    const colSpacing = (width - 100) / 4;
     nodeGroups.forEach((group, colIdx) => {
-      const x = padding + colIdx * colSpacing;
+      const x = 50 + colIdx * colSpacing;
       const n = group.length;
       if (n === 1) {
-        finalPositions[group[0].name.toLowerCase()] = { x, y: height / 2 };
+        nextPositions[group[0].name.toLowerCase()] = { x, y: centerY };
       } else if (n > 1) {
         group.forEach((node, idx) => {
-          const y = padding + (idx * (height - padding * 2)) / (n - 1);
-          finalPositions[node.name.toLowerCase()] = { x, y };
+          const y = 50 + (idx * (height - 100)) / (n - 1);
+          nextPositions[node.name.toLowerCase()] = { x, y };
         });
       }
     });
 
-    setNodePositions(finalPositions);
-  }, [graphNodes, graphSearchResult]);
+    // Fallback for nodes that don't belong to any column or need placement
+    visibleNodes.forEach((node, i) => {
+      const key = node.name.toLowerCase();
+      if (!nextPositions[key]) {
+        const angle = (i / visibleNodes.length) * 2 * Math.PI;
+        nextPositions[key] = {
+          x: centerX + 120 * Math.cos(angle),
+          y: centerY + 120 * Math.sin(angle)
+        };
+      }
+    });
 
+    // 2. Run simulation for 300 iterations
+    const iterations = 300;
+    const kRepulsion = 140000; // Increased repulsion force so nodes spread out more
+    const kAttraction = 0.04;  // Slightly reduced attraction force
+    const kGravity = 0.03;     // Reduced gravity to prevent crowding at the center
+    const restLength = 160;    // Increased rest length of edges
+
+    for (let step = 0; step < iterations; step++) {
+      const fx: { [key: string]: number } = {};
+      const fy: { [key: string]: number } = {};
+
+      visibleNodes.forEach(node => {
+        const key = node.name.toLowerCase();
+        fx[key] = 0;
+        fy[key] = 0;
+      });
+
+      // Node-Node Repulsion
+      for (let i = 0; i < visibleNodes.length; i++) {
+        const k1 = visibleNodes[i].name.toLowerCase();
+        const p1 = nextPositions[k1];
+        if (!p1) continue;
+
+        for (let j = i + 1; j < visibleNodes.length; j++) {
+          const k2 = visibleNodes[j].name.toLowerCase();
+          const p2 = nextPositions[k2];
+          if (!p2) continue;
+
+          let dx = p1.x - p2.x;
+          let dy = p1.y - p2.y;
+          if (dx === 0 && dy === 0) {
+            dx = Math.random() - 0.5;
+            dy = Math.random() - 0.5;
+          }
+
+          const distSq = dx * dx + dy * dy;
+          const dist = Math.sqrt(distSq);
+
+          // Force inversely proportional to distance (squared)
+          const force = kRepulsion / (distSq + 200);
+          const forceX = (dx / dist) * force;
+          const forceY = (dy / dist) * force;
+
+          fx[k1] += forceX;
+          fy[k1] += forceY;
+          fx[k2] -= forceX;
+          fy[k2] -= forceY;
+        }
+      }
+
+      // Edge Attraction
+      visibleEdges.forEach(edge => {
+        const kS = edge.source.toLowerCase();
+        const kT = edge.target.toLowerCase();
+        const pS = nextPositions[kS];
+        const pT = nextPositions[kT];
+
+        if (!pS || !pT) return;
+
+        const dx = pS.x - pT.x;
+        const dy = pS.y - pT.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1.0;
+
+        const force = kAttraction * (dist - restLength);
+        const forceX = (dx / dist) * force;
+        const forceY = (dy / dist) * force;
+
+        fx[kS] -= forceX;
+        fy[kS] -= forceY;
+        fx[kT] += forceX;
+        fy[kT] += forceY;
+      });
+
+      // Gravity force to keep graph centered
+      visibleNodes.forEach(node => {
+        const key = node.name.toLowerCase();
+        const pos = nextPositions[key];
+        if (!pos) return;
+
+        fx[key] -= kGravity * (pos.x - centerX);
+        fy[key] -= kGravity * (pos.y - centerY);
+      });
+
+      // Update positions
+      visibleNodes.forEach(node => {
+        const key = node.name.toLowerCase();
+        const pos = nextPositions[key];
+        if (!pos) return;
+
+        const forceLen = Math.sqrt(fx[key] * fx[key] + fy[key] * fy[key]) || 1.0;
+        const maxStep = Math.min(8, forceLen);
+        const dx = (fx[key] / forceLen) * maxStep;
+        const dy = (fy[key] / forceLen) * maxStep;
+
+        nextPositions[key] = {
+          x: Math.max(65, Math.min(715, pos.x + dx)), // Tighter boundaries (padding)
+          y: Math.max(45, Math.min(375, pos.y + dy))  // Tighter boundaries (padding)
+        };
+      });
+    }
+
+    setNodePositions(nextPositions);
+  }, [graphNodes, graphEdges, graphSearchResult, visibleTypes]);
+
+  // Zoom and Pan Refs for wheel events (prevents re-registering listener)
+  const zoomPanRef = useRef({ zoom, pan });
+  useEffect(() => {
+    zoomPanRef.current = { zoom, pan };
+  }, [zoom, pan]);
+
+  // Register non-passive wheel event listener on the SVG element for Zooming
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+
+    const handleScrollZoom = (e: WheelEvent) => {
+      e.preventDefault();
+      
+      const { zoom: currentZoom, pan: currentPan } = zoomPanRef.current;
+      const zoomFactor = 1.1;
+      let nextZoom = currentZoom;
+      
+      if (e.deltaY < 0) {
+        nextZoom = Math.min(5, currentZoom * zoomFactor);
+      } else {
+        nextZoom = Math.max(0.2, currentZoom / zoomFactor);
+      }
+      
+      const rect = svgEl.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      const dx = mouseX - currentPan.x;
+      const dy = mouseY - currentPan.y;
+      
+      const nextPan = {
+        x: mouseX - dx * (nextZoom / currentZoom),
+        y: mouseY - dy * (nextZoom / currentZoom)
+      };
+      
+      setZoom(nextZoom);
+      setPan(nextPan);
+    };
+
+    svgEl.addEventListener("wheel", handleScrollZoom, { passive: false });
+    return () => {
+      svgEl.removeEventListener("wheel", handleScrollZoom);
+    };
+  }, []);
+
+  // Reset zoom & pan to default state
+  const resetZoomPan = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // Node Drag and Viewport Panning mouse handlers
   const handleMouseDown = (nodeKey: string, e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setDraggedNodeKey(nodeKey);
   };
 
+  const handleBgMouseDown = (e: React.MouseEvent) => {
+    const targetTag = (e.target as HTMLElement).tagName.toLowerCase();
+    if (targetTag === "svg" || (e.target as HTMLElement).id === "svg-bg") {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      e.preventDefault();
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggedNodeKey || !svgRef.current) return;
-    
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const clampedX = Math.max(20, Math.min(rect.width - 20, x));
-    const clampedY = Math.max(20, Math.min(rect.height - 20, y));
-    
-    setNodePositions(prev => ({
-      ...prev,
-      [draggedNodeKey]: { x: clampedX, y: clampedY }
-    }));
+    if (draggedNodeKey) {
+      if (!svgRef.current) return;
+      const rect = svgRef.current.getBoundingClientRect();
+      const rawX = e.clientX - rect.left;
+      const rawY = e.clientY - rect.top;
+      
+      // Translate to zoom/pan coordinate system
+      const x = (rawX - pan.x) / zoom;
+      const y = (rawY - pan.y) / zoom;
+      
+      // Clamp node to SVG boundaries with padding so it cannot go outside during drag
+      const clampedX = Math.max(65, Math.min(715, x));
+      const clampedY = Math.max(45, Math.min(375, y));
+      
+      setNodePositions(prev => ({
+        ...prev,
+        [draggedNodeKey]: { x: clampedX, y: clampedY }
+      }));
+    } else if (isPanning) {
+      setPan({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y
+      });
+    }
   };
 
   const handleMouseUp = () => {
     setDraggedNodeKey(null);
+    setIsPanning(false);
+  };
+
+  // Toggle category visibility
+  const toggleTypeVisibility = (type: string) => {
+    setVisibleTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+        // Clear selected node if it belongs to hidden category
+        if (selectedNode && selectedNode.type === type) {
+          setSelectedNode(null);
+          setSelectedNodeRelationships([]);
+        }
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
+
+  // Calculates intersection point of line with circle boundary
+  const getLineCoords = (
+    posS: { x: number; y: number },
+    posT: { x: number; y: number },
+    rS: number,
+    rT: number
+  ) => {
+    const dx = posT.x - posS.x;
+    const dy = posT.y - posS.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1.0;
+    
+    return {
+      x1: posS.x + (dx / len) * rS,
+      y1: posS.y + (dy / len) * rS,
+      x2: posT.x - (dx / len) * (rT + 8),
+      y2: posT.y - (dy / len) * (rT + 8)
+    };
   };
 
   const getNodeStyles = (type: string) => {
@@ -1145,7 +1398,32 @@ export default function Dashboard() {
                       <p className="text-[10px] text-zinc-600 font-mono mt-1">Upload files in the Knowledge Library to generate the graph.</p>
                     </div>
                   ) : (
-                    <div className="flex-1 overflow-hidden select-none">
+                    <div className="flex-1 overflow-hidden select-none relative">
+                      {/* Floating Zoom/Pan Controls */}
+                      <div className="absolute right-2 top-2 flex flex-col space-y-1.5 z-20 bg-zinc-900/90 border border-zinc-800/80 p-1.5 rounded-md backdrop-blur-sm">
+                        <button
+                          onClick={() => setZoom(z => Math.min(5, z * 1.2))}
+                          className="p-1 rounded bg-zinc-950 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white transition text-xs font-bold w-6 h-6 flex items-center justify-center"
+                          title="Zoom In"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => setZoom(z => Math.max(0.2, z / 1.2))}
+                          className="p-1 rounded bg-zinc-950 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white transition text-xs font-bold w-6 h-6 flex items-center justify-center"
+                          title="Zoom Out"
+                        >
+                          −
+                        </button>
+                        <button
+                          onClick={resetZoomPan}
+                          className="p-1 rounded bg-zinc-950 border border-zinc-800 hover:bg-zinc-800 text-[9px] font-mono text-zinc-400 hover:text-white transition w-6 h-6 flex items-center justify-center"
+                          title="Reset View"
+                        >
+                          R
+                        </button>
+                      </div>
+
                       <svg
                         ref={svgRef}
                         width="100%"
@@ -1154,14 +1432,18 @@ export default function Dashboard() {
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseUp}
-                        className="w-full h-full"
+                        onMouseDown={handleBgMouseDown}
+                        className={`w-full h-full select-none transition-colors duration-150 ${isPanning ? "cursor-grabbing" : "cursor-grab"}`}
                       >
-                        {/* Define arrow marker for directed links */}
+                        {/* Invisible background rect to capture all pan mouse events */}
+                        <rect id="svg-bg" width="100%" height="100%" fill="transparent" pointerEvents="all" />
+
+                        {/* Define arrow markers for directed links */}
                         <defs>
                           <marker
                             id="arrow"
                             viewBox="0 0 10 10"
-                            refX="20"
+                            refX="6"
                             refY="5"
                             markerWidth="6"
                             markerHeight="6"
@@ -1169,144 +1451,205 @@ export default function Dashboard() {
                           >
                             <path d="M 0 0 L 10 5 L 0 10 z" fill="#3f3f46" />
                           </marker>
+                          <marker
+                            id="arrow-active"
+                            viewBox="0 0 10 10"
+                            refX="6"
+                            refY="5"
+                            markerWidth="6"
+                            markerHeight="6"
+                            orient="auto-start-reverse"
+                          >
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4" />
+                          </marker>
                         </defs>
 
-                        {/* Draw Edges */}
-                        {(graphSearchResult ? graphSearchResult.edges : graphEdges).map((edge, idx) => {
-                          const srcKey = edge.source.toLowerCase();
-                          const tgtKey = edge.target.toLowerCase();
-                          const posS = nodePositions[srcKey];
-                          const posT = nodePositions[tgtKey];
-                          
-                          if (!posS || !posT) return null;
-                          
-                          const isSelectedSource = selectedNode?.name.toLowerCase() === srcKey;
-                          const isSelectedTarget = selectedNode?.name.toLowerCase() === tgtKey;
-                          const isActive = isSelectedSource || isSelectedTarget;
-                          
-                          return (
-                            <g key={`edge-${idx}`}>
-                              <line
-                                x1={posS.x}
-                                y1={posS.y}
-                                x2={posT.x}
-                                y2={posT.y}
-                                stroke={isActive ? "#06b6d4" : "#27272a"}
-                                strokeWidth={isActive ? "2" : "1.2"}
-                                strokeDasharray={edge.type === "DEPENDS_ON" ? "4,4" : "none"}
-                                markerEnd="url(#arrow)"
-                                className="transition-all duration-150"
-                              />
-                              {isActive && (
-                                <text
-                                  x={(posS.x + posT.x) / 2}
-                                  y={(posS.y + posT.y) / 2 - 5}
-                                  fill="#06b6d4"
-                                  fontSize="8"
-                                  fontWeight="bold"
-                                  textAnchor="middle"
-                                  className="font-mono bg-zinc-950 px-1"
+                        {/* Force Layout Zoom & Pan Container */}
+                        <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+                          {/* Draw Edges */}
+                          {(graphSearchResult ? graphSearchResult.edges : graphEdges)
+                            .filter(edge => {
+                              const srcNode = (graphSearchResult ? graphSearchResult.nodes : graphNodes).find(n => n.name.toLowerCase() === edge.source.toLowerCase());
+                              const tgtNode = (graphSearchResult ? graphSearchResult.nodes : graphNodes).find(n => n.name.toLowerCase() === edge.target.toLowerCase());
+                              return srcNode && tgtNode && visibleTypes.has(srcNode.type) && visibleTypes.has(tgtNode.type);
+                            })
+                            .map((edge, idx) => {
+                              const srcKey = edge.source.toLowerCase();
+                              const tgtKey = edge.target.toLowerCase();
+                              const posS = nodePositions[srcKey];
+                              const posT = nodePositions[tgtKey];
+                              
+                              if (!posS || !posT) return null;
+                              
+                              const isSelectedSource = selectedNode?.name.toLowerCase() === srcKey;
+                              const isSelectedTarget = selectedNode?.name.toLowerCase() === tgtKey;
+                              const isActive = isSelectedSource || isSelectedTarget;
+                              
+                              const rS = isSelectedSource ? 15 : 12;
+                              const rT = isSelectedTarget ? 15 : 12;
+                              
+                              const coords = getLineCoords(posS, posT, rS, rT);
+                              const midX = (coords.x1 + coords.x2) / 2;
+                              const midY = (coords.y1 + coords.y2) / 2;
+                              
+                              // Fix any corrupted label text
+                              const rawLabel = edge.type.toLowerCase().replace(/_/g, " ").trim();
+                              const relLabel = rawLabel === "cdependsconc" ? "depends on" : rawLabel;
+                              const isHovered = hoveredEdgeIdx === idx;
+                              
+                              return (
+                                <g 
+                                  key={`edge-${idx}`}
+                                  onMouseEnter={() => setHoveredEdgeIdx(idx)}
+                                  onMouseLeave={() => setHoveredEdgeIdx(null)}
                                 >
-                                  {edge.type}
-                                </text>
-                              )}
-                            </g>
-                          );
-                        })}
+                                  {/* Invisible thicker line to capture hover events easily */}
+                                  <line
+                                    x1={coords.x1}
+                                    y1={coords.y1}
+                                    x2={coords.x2}
+                                    y2={coords.y2}
+                                    stroke="transparent"
+                                    strokeWidth="10"
+                                    pointerEvents="stroke"
+                                    className="cursor-pointer"
+                                  />
+                                  <line
+                                    x1={coords.x1}
+                                    y1={coords.y1}
+                                    x2={coords.x2}
+                                    y2={coords.y2}
+                                    stroke={isActive ? "#06b6d4" : "#27272a"}
+                                    strokeWidth={isActive ? "2" : "1.2"}
+                                    strokeDasharray={edge.type === "DEPENDS_ON" ? "4,4" : "none"}
+                                    markerEnd={isActive ? "url(#arrow-active)" : "url(#arrow)"}
+                                    className="transition-all duration-150"
+                                  />
+                                  {isHovered && (
+                                    <text
+                                      x={midX}
+                                      y={midY - 4}
+                                      fill="#06b6d4"
+                                      stroke="#09090b"
+                                      strokeWidth="3"
+                                      paintOrder="stroke"
+                                      strokeLinejoin="round"
+                                      fontSize="8"
+                                      fontWeight="bold"
+                                      textAnchor="middle"
+                                      className="font-mono select-none pointer-events-none transition-all duration-150"
+                                    >
+                                      {relLabel}
+                                    </text>
+                                  )}
+                                </g>
+                              );
+                            })}
 
-                        {/* Draw Nodes */}
-                        {(graphSearchResult ? graphSearchResult.nodes : graphNodes).map((node) => {
-                          const key = node.name.toLowerCase();
-                          const pos = nodePositions[key];
-                          if (!pos) return null;
-                          
-                          const styles = getNodeStyles(node.type);
-                          const isSelected = selectedNode?.name.toLowerCase() === key;
-                          const abbrev = node.name.replace(/[^a-zA-Z0-9]/g, "").slice(0, 2).toUpperCase();
-                          
-                          return (
-                            <g
-                              key={`node-${key}`}
-                              transform={`translate(${pos.x}, ${pos.y})`}
-                              onClick={() => handleNodeClick(node)}
-                              onMouseDown={(e) => handleMouseDown(key, e)}
-                              className="cursor-grab active:cursor-grabbing group"
-                            >
-                              <circle
-                                r={isSelected ? "18" : "14"}
-                                fill="transparent"
-                                stroke={styles.fill}
-                                strokeWidth="4"
-                                strokeOpacity={isSelected ? "0.3" : "0"}
-                                className="transition-all duration-200 group-hover:stroke-opacity-20 group-hover:r-16"
-                              />
+                          {/* Draw Nodes */}
+                          {(graphSearchResult ? graphSearchResult.nodes : graphNodes)
+                            .filter(node => visibleTypes.has(node.type))
+                            .map((node) => {
+                              const key = node.name.toLowerCase();
+                              const pos = nodePositions[key];
+                              if (!pos) return null;
                               
-                              <circle
-                                r={isSelected ? "15" : "12"}
-                                fill="#09090b"
-                                stroke={isSelected ? "#06b6d4" : styles.fill}
-                                strokeWidth={isSelected ? "3" : "2"}
-                                className="transition-all duration-150"
-                              />
+                              const styles = getNodeStyles(node.type);
+                              const isSelected = selectedNode?.name.toLowerCase() === key;
+                              const abbrev = node.name.replace(/[^a-zA-Z0-9]/g, "").slice(0, 2).toUpperCase();
                               
-                              <text
-                                dy=".3em"
-                                textAnchor="middle"
-                                fill={isSelected ? "#06b6d4" : styles.stroke}
-                                fontSize="8"
-                                fontWeight="bold"
-                                className="font-mono select-none pointer-events-none"
-                              >
-                                {abbrev}
-                              </text>
+                              // Keep node name labels inside canvas by estimating label half-width and shifting
+                              const halfWidth = (node.name.length * 5.5) / 2;
+                              let labelX = 0;
+                              if (pos.x - halfWidth < 10) {
+                                labelX = 10 - pos.x + halfWidth;
+                              } else if (pos.x + halfWidth > 770) {
+                                labelX = 770 - pos.x - halfWidth;
+                              }
                               
-                              <text
-                                y="24"
-                                textAnchor="middle"
-                                fill={isSelected ? "#22d3ee" : "#d4d4d8"}
-                                fontSize="9"
-                                fontWeight={isSelected ? "bold" : "semibold"}
-                                className="font-sans select-none pointer-events-none filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-                              >
-                                {node.name}
-                              </text>
-                            </g>
-                          );
-                        })}
+                              return (
+                                <g
+                                  key={`node-${key}`}
+                                  transform={`translate(${pos.x}, ${pos.y})`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNodeClick(node);
+                                  }}
+                                  onMouseDown={(e) => handleMouseDown(key, e)}
+                                  className="cursor-grab active:cursor-grabbing group"
+                                >
+                                  <circle
+                                    r={isSelected ? "18" : "14"}
+                                    fill="transparent"
+                                    stroke={styles.fill}
+                                    strokeWidth="4"
+                                    strokeOpacity={isSelected ? "0.3" : "0"}
+                                    className="transition-all duration-200 group-hover:stroke-opacity-20 group-hover:r-16"
+                                  />
+                                  
+                                  <circle
+                                    r={isSelected ? "15" : "12"}
+                                    fill="#09090b"
+                                    stroke={isSelected ? "#06b6d4" : styles.fill}
+                                    strokeWidth={isSelected ? "3" : "2"}
+                                    className="transition-all duration-150"
+                                  />
+                                  
+                                  <text
+                                    dy=".3em"
+                                    textAnchor="middle"
+                                    fill={isSelected ? "#06b6d4" : styles.stroke}
+                                    fontSize="8"
+                                    fontWeight="bold"
+                                    className="font-mono select-none pointer-events-none"
+                                  >
+                                    {abbrev}
+                                  </text>
+                                  
+                                  <text
+                                    x={labelX}
+                                    y="24"
+                                    textAnchor="middle"
+                                    fill={isSelected ? "#22d3ee" : "#d4d4d8"}
+                                    fontSize="9"
+                                    fontWeight={isSelected ? "bold" : "semibold"}
+                                    className="font-sans select-none pointer-events-none filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
+                                  >
+                                    {node.name}
+                                  </text>
+                                </g>
+                              );
+                            })}
+                        </g>
                       </svg>
                     </div>
                   )}
 
                   {/* Legend */}
-                  <div className="flex flex-wrap gap-3 border-t border-zinc-800/80 pt-3 mt-4 text-[9px] font-mono text-zinc-500 justify-center">
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-rose-500" />
-                      <span>Equipment</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-amber-500" />
-                      <span>Assets</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-cyan-500" />
-                      <span>Systems</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-purple-500" />
-                      <span>Procedures</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      <span>Safety Items</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-indigo-500" />
-                      <span>Departments</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-2 w-2 rounded-full bg-sky-500" />
-                      <span>Locations</span>
-                    </div>
+                  <div className="flex flex-wrap gap-2 border-t border-zinc-800/80 pt-3 mt-4 text-[9px] font-mono text-zinc-500 justify-center">
+                    {[
+                      { type: "Equipment", color: "bg-rose-500" },
+                      { type: "Assets", color: "bg-amber-500" },
+                      { type: "Systems", color: "bg-cyan-500" },
+                      { type: "Procedures", color: "bg-purple-500" },
+                      { type: "Safety Items", color: "bg-emerald-500" },
+                      { type: "Departments", color: "bg-indigo-500" },
+                      { type: "Locations", color: "bg-sky-500" }
+                    ].map((item) => {
+                      const isVisible = visibleTypes.has(item.type);
+                      return (
+                        <button
+                          key={item.type}
+                          onClick={() => toggleTypeVisibility(item.type)}
+                          className={`flex items-center space-x-1.5 cursor-pointer select-none transition-all duration-150 py-1 px-2 rounded hover:bg-zinc-900 border border-transparent hover:border-zinc-800 ${
+                            isVisible ? "text-zinc-300 font-semibold" : "opacity-30 text-zinc-600 line-through"
+                          }`}
+                        >
+                          <span className={`h-2 w-2 rounded-full ${item.color} ${isVisible ? "" : "bg-zinc-700"}`} />
+                          <span>{item.type}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1352,62 +1695,78 @@ export default function Dashboard() {
 
                         {/* Node Relationships */}
                         <div className="space-y-2">
-                          <h5 className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 border-b border-zinc-800/80 pb-1.5">
-                            Connected Relationships ({selectedNodeRelationships.length})
-                          </h5>
-                          
-                          {selectedNodeRelationships.length === 0 ? (
-                            <p className="text-zinc-600 italic text-[10px] py-2">No active relationships found.</p>
-                          ) : (
-                            <div className="space-y-2">
-                              {selectedNodeRelationships.map((rel, idx) => {
-                                const isSource = rel.source.toLowerCase() === selectedNode.name.toLowerCase();
-                                const connectedName = isSource ? rel.target : rel.source;
-                                const connectedNodeObj = (graphSearchResult ? graphSearchResult.nodes : graphNodes).find(
-                                  n => n.name.toLowerCase() === connectedName.toLowerCase()
-                                );
-                                const connectedType = connectedNodeObj ? connectedNodeObj.type : "Assets";
+                          {(() => {
+                            const visibleRels = selectedNodeRelationships.filter(rel => {
+                              const isSource = rel.source.toLowerCase() === selectedNode.name.toLowerCase();
+                              const connectedName = isSource ? rel.target : rel.source;
+                              const connectedNodeObj = (graphSearchResult ? graphSearchResult.nodes : graphNodes).find(
+                                n => n.name.toLowerCase() === connectedName.toLowerCase()
+                              );
+                              if (!connectedNodeObj) return true;
+                              return visibleTypes.has(connectedNodeObj.type);
+                            });
+
+                            return (
+                              <>
+                                <h5 className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 border-b border-zinc-800/80 pb-1.5">
+                                  Connected Relationships ({visibleRels.length})
+                                </h5>
                                 
-                                return (
-                                  <div
-                                    key={idx}
-                                    className="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 flex flex-col space-y-2 hover:border-zinc-700 transition"
-                                  >
-                                    <div className="flex items-center justify-between text-[9px]">
-                                      <span className="text-cyan-400 font-bold tracking-wide uppercase px-1 py-0.5 rounded bg-cyan-950/40 border border-cyan-800/30">
-                                        {rel.type}
-                                      </span>
-                                      <span className="text-zinc-500">
-                                        {isSource ? "Outgoing" : "Incoming"}
-                                      </span>
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-between pt-1">
-                                      <div className="flex items-center space-x-1.5 font-sans font-bold text-white truncate max-w-[70%] text-[11px]">
-                                        <span className="text-zinc-400 font-normal font-mono text-[9px]">
-                                          {isSource ? "To:" : "From:"}
-                                        </span>
-                                        <span className="truncate">{connectedName}</span>
-                                      </div>
+                                {visibleRels.length === 0 ? (
+                                  <p className="text-zinc-600 italic text-[10px] py-2">No active relationships found.</p>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {visibleRels.map((rel, idx) => {
+                                      const isSource = rel.source.toLowerCase() === selectedNode.name.toLowerCase();
+                                      const connectedName = isSource ? rel.target : rel.source;
+                                      const connectedNodeObj = (graphSearchResult ? graphSearchResult.nodes : graphNodes).find(
+                                        n => n.name.toLowerCase() === connectedName.toLowerCase()
+                                      );
+                                      const connectedType = connectedNodeObj ? connectedNodeObj.type : "Assets";
                                       
-                                      <button
-                                        onClick={() => {
-                                          if (connectedNodeObj) {
-                                            handleNodeClick(connectedNodeObj);
-                                          } else {
-                                            handleNodeClick({ name: connectedName, type: connectedType });
-                                          }
-                                        }}
-                                        className="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-cyan-900/30 hover:text-cyan-400 text-[9px] border border-zinc-700/80 hover:border-cyan-500/20 transition-all font-mono"
-                                      >
-                                        [Inspect]
-                                      </button>
-                                    </div>
+                                      return (
+                                        <div
+                                          key={idx}
+                                          className="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 flex flex-col space-y-2 hover:border-zinc-700 transition"
+                                        >
+                                          <div className="flex items-center justify-between text-[9px]">
+                                            <span className="text-cyan-400 font-bold tracking-wide uppercase px-1 py-0.5 rounded bg-cyan-950/40 border border-cyan-800/30">
+                                              {rel.type}
+                                            </span>
+                                            <span className="text-zinc-500">
+                                              {isSource ? "Outgoing" : "Incoming"}
+                                            </span>
+                                          </div>
+                                          
+                                          <div className="flex items-center justify-between pt-1">
+                                            <div className="flex items-center space-x-1.5 font-sans font-bold text-white truncate max-w-[70%] text-[11px]">
+                                              <span className="text-zinc-400 font-normal font-mono text-[9px]">
+                                                {isSource ? "To:" : "From:"}
+                                              </span>
+                                              <span className="truncate">{connectedName}</span>
+                                            </div>
+                                            
+                                            <button
+                                              onClick={() => {
+                                                if (connectedNodeObj) {
+                                                  handleNodeClick(connectedNodeObj);
+                                                } else {
+                                                  handleNodeClick({ name: connectedName, type: connectedType });
+                                                }
+                                              }}
+                                              className="px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-cyan-900/30 hover:text-cyan-400 text-[9px] border border-zinc-700/80 hover:border-cyan-500/20 transition-all font-mono"
+                                            >
+                                              [Inspect]
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
 
                       </div>

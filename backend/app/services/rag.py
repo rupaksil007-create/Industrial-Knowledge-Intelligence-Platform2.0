@@ -154,11 +154,11 @@ class RAGService:
             
         # 1. Remove conversational starter fluff
         fluff_patterns = [
-            r"^(?i)based on the (?:provided|retrieved) contexts?,\s*",
-            r"^(?i)based on the documents?,\s*",
-            r"^(?i)according to the (?:provided|retrieved) contexts?,\s*",
-            r"^(?i)according to the documents?,\s*",
-            r"^(?i)here is (?:a|the) (?:summary|overview) of\s*",
+            r"(?i)^based on the (?:provided|retrieved) contexts?,\s*",
+            r"(?i)^based on the documents?,\s*",
+            r"(?i)^according to the (?:provided|retrieved) contexts?,\s*",
+            r"(?i)^according to the documents?,\s*",
+            r"(?i)^here is (?:a|the) (?:summary|overview) of\s*",
         ]
         cleaned = text.strip()
         for pat in fluff_patterns:
