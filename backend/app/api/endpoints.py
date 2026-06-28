@@ -300,3 +300,57 @@ async def search_graph(q: str = Query(..., description="Query string for graph s
         logger.error(f"Error searching graph: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ====================================================
+# INDUSTRIAL COMPLIANCE & GAP DETECTION ENDPOINTS
+# ====================================================
+from app.services.compliance_engine import compliance_engine
+
+@router.get("/compliance/score")
+async def get_compliance_score():
+    """
+    Get the overall compliance score and risk level.
+    """
+    try:
+        return compliance_engine.get_score_data()
+    except Exception as e:
+        logger.error(f"Error getting compliance score: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/compliance/gaps")
+async def get_compliance_gaps():
+    """
+    List all detected compliance gaps with source evidence.
+    """
+    try:
+        return compliance_engine.get_gaps()
+    except Exception as e:
+        logger.error(f"Error getting compliance gaps: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/compliance/report")
+async def get_compliance_report():
+    """
+    Get the complete compliance intelligence report.
+    """
+    try:
+        return compliance_engine.get_report()
+    except Exception as e:
+        logger.error(f"Error getting compliance report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/compliance/analyze")
+async def analyze_compliance():
+    """
+    Trigger a fresh asynchronous compliance gap analysis.
+    """
+    try:
+        compliance_engine.trigger_analysis()
+        return {
+            "status": "analysis_started",
+            "message": "Compliance gap analysis has been started in the background."
+        }
+    except Exception as e:
+        logger.error(f"Error triggering compliance analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

@@ -74,7 +74,7 @@ export default function Navbar() {
               href="/signup"
               className="group flex items-center gap-1.5 text-sm font-medium bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 px-4 py-2 rounded-lg shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25 transition-all duration-300 font-semibold"
             >
-              Request Demo
+              Sign Up
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -126,7 +126,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center text-base font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-zinc-950 py-2.5 rounded-lg"
                 >
-                  Request Demo
+                  Sign Up
                 </Link>
               </div>
             </div>

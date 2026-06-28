@@ -69,15 +69,16 @@ export default function Dashboard() {
           setSession(JSON.parse(stored));
         } catch (e) {
           console.error("Failed to parse session", e);
+          window.location.href = "/login";
         }
       } else {
-        // Fallback for direct access to dashboard
-        setSession({
-          name: "Alex Chen",
-          email: "engineer@ikip-platform.com",
-          role: "Engineer",
-          avatarSeed: "AC"
-        });
+        window.location.href = "/login";
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["dashboard", "library", "chat", "graph", "compliance"].includes(tabParam)) {
+        setActiveTab(tabParam as any);
       }
     }
   }, []);
@@ -85,11 +86,66 @@ export default function Dashboard() {
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("ikip_session");
+      document.cookie = "ikip_session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     }
     window.location.href = "/login";
   };
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "library" | "chat" | "graph">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "library" | "chat" | "graph" | "compliance">("dashboard");
+  
+  // Compliance Intelligence States
+  const [complianceData, setComplianceData] = useState<any>(null);
+  const [isAnalyzingCompliance, setIsAnalyzingCompliance] = useState(false);
+  const [complianceError, setComplianceError] = useState("");
+
+  const fetchComplianceData = async () => {
+    try {
+      const res = await fetch(`${API_URL}/compliance/report`);
+      if (res.ok) {
+        const data = await res.json();
+        setComplianceData(data);
+        setComplianceError("");
+      } else {
+        setComplianceError("Failed to fetch compliance report.");
+      }
+    } catch (e: any) {
+      console.error("Error fetching compliance report:", e);
+      setComplianceError("Could not connect to compliance engine API.");
+    }
+  };
+
+  const handleAnalyzeCompliance = async () => {
+    setIsAnalyzingCompliance(true);
+    setComplianceError("");
+    try {
+      const res = await fetch(`${API_URL}/compliance/analyze`, { method: "POST" });
+      if (res.ok) {
+        let count = 0;
+        const interval = setInterval(async () => {
+          await fetchComplianceData();
+          count++;
+          if (count >= 4) {
+            clearInterval(interval);
+            setIsAnalyzingCompliance(false);
+          }
+        }, 1500);
+      } else {
+        setComplianceError("Failed to trigger compliance analysis.");
+        setIsAnalyzingCompliance(false);
+      }
+    } catch (e: any) {
+      console.error("Error analyzing compliance:", e);
+      setComplianceError("Error initiating compliance run.");
+      setIsAnalyzingCompliance(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "compliance") {
+      fetchComplianceData();
+    }
+  }, [activeTab]);
+
   const [backendStatus, setBackendStatus] = useState<"connecting" | "online" | "offline">("connecting");
   const [backendConfig, setBackendConfig] = useState({
     app: "IKIP",
@@ -1020,6 +1076,18 @@ export default function Dashboard() {
                 <Network className="h-4.5 w-4.5" />
                 <span>Knowledge Graph</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab("compliance")}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded transition-all duration-200 text-sm font-medium ${
+                  activeTab === "compliance"
+                    ? "bg-cyan-950/40 text-cyan-400 border-l-2 border-cyan-500 font-semibold"
+                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                }`}
+              >
+                <Shield className="h-4.5 w-4.5" />
+                <span>Compliance Intelligence</span>
+              </button>
             </nav>
           </div>
           
@@ -1841,6 +1909,393 @@ export default function Dashboard() {
                 </div>
 
               </div>
+            </div>
+          )}
+
+          {/* TAB CONTENT: COMPLIANCE INTELLIGENCE */}
+          {activeTab === "compliance" && (
+            <div className="space-y-6">
+              
+              {/* Header and Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#121214] p-4 rounded-lg border border-zinc-800">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-cyan-400" />
+                    Compliance & Gap Detection Engine
+                  </h2>
+                  <p className="text-xs text-zinc-500 font-mono mt-1">
+                    System last analyzed: {complianceData?.last_updated ? new Date(complianceData.last_updated).toLocaleString() : "Never"}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  {complianceData && (
+                    <button
+                      onClick={() => {
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(complianceData, null, 2));
+                        const downloadAnchor = document.createElement('a');
+                        downloadAnchor.setAttribute("href", dataStr);
+                        downloadAnchor.setAttribute("download", `compliance_report_${new Date().toISOString().slice(0,10)}.json`);
+                        document.body.appendChild(downloadAnchor);
+                        downloadAnchor.click();
+                        downloadAnchor.remove();
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-300 hover:text-white transition-all cursor-pointer"
+                    >
+                      Export JSON
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleAnalyzeCompliance}
+                    disabled={isAnalyzingCompliance}
+                    className="group flex items-center gap-1.5 text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-zinc-950 px-4 py-2 rounded shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25 transition-all duration-300 disabled:opacity-50 cursor-pointer"
+                  >
+                    {isAnalyzingCompliance ? (
+                      <>
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-3.5 w-3.5 group-hover:rotate-180 transition-transform duration-500" />
+                        Run Audit Analysis
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {complianceError && (
+                <div className="bg-rose-950/30 border border-rose-900 text-rose-400 text-xs rounded-lg p-4 font-mono">
+                  {complianceError}
+                </div>
+              )}
+
+              {!complianceData ? (
+                <div className="glass-panel p-12 rounded-lg border border-zinc-800 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs font-mono text-zinc-450">Querying compliance ledger database...</span>
+                </div>
+              ) : (
+                <>
+                  {/* Top Row Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Score Card */}
+                    <div className="glass-panel p-5 rounded-lg border border-zinc-800 relative overflow-hidden flex items-center gap-6 lg:col-span-1 bg-[#09090b]/40">
+                      <div className="relative flex-shrink-0 flex items-center justify-center w-24 h-24 rounded-full border-4 border-zinc-800">
+                        <div className="text-center">
+                          <span className="block text-3xl font-black tracking-tight text-white font-mono">{complianceData.score}</span>
+                          <span className="text-[10px] text-zinc-500 uppercase tracking-widest block -mt-1">/ 100</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <span className="text-[10px] font-mono uppercase text-zinc-500 block font-bold tracking-widest">Compliance Status</span>
+                        <h3 className={`text-xl font-extrabold tracking-tight uppercase ${
+                          complianceData.risk_level === "UNVERIFIED"
+                            ? "text-zinc-500"
+                            : complianceData.score >= 95
+                            ? "text-emerald-400"
+                            : complianceData.score >= 80
+                            ? "text-cyan-400"
+                            : complianceData.score >= 60
+                            ? "text-amber-400"
+                            : "text-rose-400"
+                        }`}>
+                          {complianceData.risk_level}
+                        </h3>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          {complianceData.risk_level === "UNVERIFIED"
+                            ? "No operational documents exist. Compliance cannot be assessed."
+                            : complianceData.score >= 95
+                            ? "Excellent rating. All mandatory SOPs and records are fully reconciled."
+                            : complianceData.score >= 80
+                            ? "Compliance is healthy, but minor documentation gaps exist."
+                            : complianceData.score >= 60
+                            ? "Warning: Several inspections or procedures are missing. Potential risk identified."
+                            : "Critical Action Required: High compliance failure. Mandatory procedures absent."
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Historical Score Trend */}
+                    <div className="glass-panel p-5 rounded-lg border border-zinc-800 lg:col-span-2 flex flex-col justify-between bg-[#09090b]/40">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] font-mono uppercase text-zinc-500 font-bold tracking-widest">Historical Compliance Trend</span>
+                        <span className="text-[9px] text-zinc-650 font-mono">Last 5 Audits</span>
+                      </div>
+
+                      <div className="h-28 w-full relative pt-2">
+                        {complianceData.historical_scores && complianceData.historical_scores.length > 0 ? (
+                          <svg className="w-full h-full" viewBox="0 0 400 100" preserveAspectRatio="none">
+                            <line x1="0" y1="20" x2="400" y2="20" stroke="#18181b" strokeWidth="0.75" strokeDasharray="3 3" />
+                            <line x1="0" y1="50" x2="400" y2="50" stroke="#18181b" strokeWidth="0.75" strokeDasharray="3 3" />
+                            <line x1="0" y1="80" x2="400" y2="80" stroke="#18181b" strokeWidth="0.75" strokeDasharray="3 3" />
+                            
+                            {(() => {
+                              const points = complianceData.historical_scores;
+                              const width = 400;
+                              const height = 100;
+                              const padding = 20;
+                              const xStep = points.length > 1 ? (width - padding * 2) / (points.length - 1) : 0;
+                              
+                              const coords = points.map((p: any, i: number) => {
+                                const x = padding + i * xStep;
+                                const y = height - padding - (p.score / 100) * (height - padding * 2);
+                                return { x, y, score: p.score, date: p.date };
+                              });
+
+                              const pathD = coords.reduce((acc: string, curr: any, i: number) => {
+                                return i === 0 ? `M ${curr.x} ${curr.y}` : `${acc} L ${curr.x} ${curr.y}`;
+                              }, "");
+
+                              return (
+                                <>
+                                  <path d={pathD} fill="none" stroke="url(#complianceChartGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  
+                                  {coords.map((c: any, i: number) => (
+                                    <g key={i}>
+                                      <circle cx={c.x} cy={c.y} r="3" className="fill-cyan-500 stroke-zinc-950 stroke-2 cursor-pointer transition-all" />
+                                      <text x={c.x} y={c.y - 7} textAnchor="middle" className="fill-zinc-300 text-[8px] font-mono font-bold">
+                                        {c.score}%
+                                      </text>
+                                      <text x={c.x} y="95" textAnchor="middle" className="fill-zinc-550 text-[7px] font-mono">
+                                        {c.date.slice(5)}
+                                      </text>
+                                    </g>
+                                  ))}
+
+                                  <defs>
+                                    <linearGradient id="complianceChartGradient" x1="0" y1="0" x2="1" y2="0">
+                                      <stop offset="0%" stopColor="#06b6d4" />
+                                      <stop offset="100%" stopColor="#3b82f6" />
+                                    </linearGradient>
+                                  </defs>
+                                </>
+                              );
+                            })()}
+                          </svg>
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-xs text-zinc-650 font-mono">
+                            No historical audits recorded.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Summary Cards Grid */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                      { 
+                        title: "Missing Procedures", 
+                        value: complianceData.gaps_summary.missing_procedures,
+                        desc: "Unresolved SOPs / guides"
+                      },
+                      { 
+                        title: "Missing Inspections", 
+                        value: complianceData.gaps_summary.missing_inspections,
+                        desc: "Audit checksheets missing"
+                      },
+                      { 
+                        title: "Missing Certifications", 
+                        value: complianceData.gaps_summary.missing_certifications,
+                        desc: "Expired or missing licenses"
+                      },
+                      { 
+                        title: "Missing Safety Records", 
+                        value: complianceData.gaps_summary.missing_safety_records,
+                        desc: "LOTO / PPE safety gaps"
+                      }
+                    ].map((card, cIdx) => (
+                      <div key={cIdx} className="glass-panel p-4 rounded-lg border border-zinc-800 flex flex-col justify-between group hover:border-zinc-700 transition-colors bg-[#09090b]/20">
+                        <span className="text-[10px] font-mono uppercase text-zinc-500 font-bold block tracking-wider">{card.title}</span>
+                        <div className="flex items-baseline gap-2 mt-2">
+                          <span className={`text-2xl font-extrabold font-mono ${card.value > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                            {card.value}
+                          </span>
+                          <span className="text-[9px] text-zinc-550 font-mono">detected</span>
+                        </div>
+                        <p className="text-[10px] text-zinc-600 mt-1 leading-normal font-mono">{card.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Coverage Matrix Grid */}
+                  {complianceData.coverage_matrix && (
+                    <div className="glass-panel p-5 rounded-lg border border-zinc-800 bg-[#09090b]/40">
+                      <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 mb-4 flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-cyan-500" />
+                        Semantic Compliance Coverage Matrix
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Object.entries(complianceData.coverage_matrix).map(([cat, val]: any) => {
+                          const details = complianceData.coverage_details?.[cat] || {};
+                          const level = details.coverage_level || "Missing";
+                          return (
+                            <div key={cat} className="flex flex-col justify-between bg-zinc-950/60 border border-zinc-850 p-4 rounded hover:border-zinc-800 transition-all gap-3">
+                              
+                              {/* Header Row */}
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-zinc-200 text-xs">{cat}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`text-[9px] font-mono px-2 py-0.5 rounded font-semibold uppercase ${
+                                    level === "Fully Covered"
+                                      ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/30"
+                                      : level === "Partially Covered"
+                                      ? "bg-amber-950/30 text-amber-400 border border-amber-900/30"
+                                      : "bg-rose-950/30 text-rose-400 border border-rose-900/30"
+                                  }`}>
+                                    {level}
+                                  </span>
+                                  <span className="font-mono text-zinc-400 text-xs font-bold">{val}%</span>
+                                </div>
+                              </div>
+
+                              {/* Confidence & Ratio row */}
+                              <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 border-b border-zinc-900/60 pb-2">
+                                <span>Confidence: <span className={
+                                  details.audit_confidence === "High Confidence" ? "text-emerald-400 font-semibold" :
+                                  details.audit_confidence === "Medium Confidence" ? "text-amber-400 font-semibold" : "text-rose-400 font-semibold"
+                                }>{details.audit_confidence || "Low"}</span></span>
+                                <span>Ratio: {details.requirements_satisfied_count || 0} / {details.requirements_total_count || 0}</span>
+                              </div>
+
+                              {/* Subparts Checklist */}
+                              {details.requirements_status && (
+                                <div className="space-y-1.5 my-1">
+                                  {Object.entries(details.requirements_status).map(([reqName, reqVal]: any) => {
+                                    const isSat = reqVal.status === "satisfied";
+                                    return (
+                                      <div key={reqName} className="flex items-center justify-between text-[10px] font-sans">
+                                        <span className="text-zinc-400 flex items-center gap-1.5 truncate pr-2">
+                                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSat ? "bg-emerald-500" : "bg-rose-500"}`} />
+                                          <span className="truncate">{reqName}</span>
+                                        </span>
+                                        {isSat ? (
+                                          <span className="text-emerald-400 font-mono text-[9px] truncate max-w-[130px] font-semibold" title={`${reqVal.doc_name} (Page ${reqVal.page})${reqVal.heading ? ` | Heading: ${reqVal.heading}` : ""}`}>
+                                            {reqVal.doc_name} (p.{reqVal.page}){reqVal.heading && reqVal.heading !== "N/A" ? ` [${reqVal.heading.slice(0, 12)}...]` : ""}
+                                          </span>
+                                        ) : (
+                                          <span className="text-zinc-650 font-mono text-[9px]">Missing</span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {/* Documents Match Row */}
+                              {details.documents_matched && details.documents_matched.length > 0 && (
+                                <div className="flex flex-wrap gap-1 text-[8px] font-mono text-zinc-600 border-t border-zinc-900/60 pt-2 mt-1">
+                                  <span className="font-bold text-zinc-500 mr-1">Docs:</span>
+                                  {details.documents_matched.map((doc: string, dIdx: number) => (
+                                    <span key={dIdx} className="bg-zinc-900 border border-zinc-850 px-1.5 py-0.5 rounded truncate max-w-[90px]" title={doc}>
+                                      {doc}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detailed Table */}
+                  <div className="glass-panel rounded-lg border border-zinc-800 overflow-hidden flex flex-col">
+                    <div className="px-4 py-3 bg-[#121214] border-b border-zinc-800 flex justify-between items-center">
+                      <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-200">Detailed Compliance Ledger & Gap Explanations</span>
+                      <span className="text-[10px] text-zinc-550 font-mono">Showing {complianceData.gaps.length} gaps</span>
+                    </div>
+
+                    {complianceData.gaps.length === 0 ? (
+                      <div className="p-8 text-center text-zinc-500 font-mono text-xs">
+                        🎉 Excellent! No compliance gaps were identified in your current operational document library.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left font-sans text-xs">
+                          <thead>
+                            <tr className="border-b border-zinc-800 bg-zinc-950/40 text-zinc-550 uppercase font-mono text-[9px] tracking-wider">
+                              <th className="py-3 px-4 font-semibold">Severity</th>
+                              <th className="py-3 px-4 font-semibold">Compliance Gap</th>
+                              <th className="py-3 px-4 font-semibold">Category</th>
+                              <th className="py-3 px-4 font-semibold">Source Document</th>
+                              <th className="py-3 px-4 font-semibold">Evidence Snippet</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-850 bg-[#09090b]/10">
+                            {complianceData.gaps.map((gap: any, gIdx: number) => (
+                              <tr key={gIdx} className="hover:bg-zinc-900/30 group transition-colors">
+                                <td className="py-3 px-4 shrink-0">
+                                  <div className="flex flex-col gap-1">
+                                    <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-semibold uppercase tracking-wider text-center ${
+                                      gap.severity === "Critical"
+                                        ? "bg-rose-950/40 text-rose-400 border border-rose-900/40"
+                                        : gap.severity === "High"
+                                        ? "bg-amber-950/40 text-amber-400 border border-amber-900/40"
+                                        : gap.severity === "Medium"
+                                        ? "bg-yellow-950/20 text-yellow-500 border border-yellow-900/30"
+                                        : "bg-cyan-950/30 text-cyan-400 border border-cyan-900/30"
+                                    }`}>
+                                      {gap.severity}
+                                    </span>
+                                    {gap.confidence_score !== undefined && (
+                                      <span className="text-[9px] text-zinc-550 font-mono text-center">
+                                        Conf: {Math.round(gap.confidence_score * 100)}%
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div>
+                                    <span className="font-bold text-zinc-200 block text-xs">{gap.gap}</span>
+                                    <p className="text-zinc-450 mt-1 text-[11px] leading-normal font-sans pr-2 max-w-lg">{gap.explanation}</p>
+                                    {gap.recommended_remediation && (
+                                      <p className="text-cyan-400/90 mt-1.5 text-[10px] leading-normal font-sans">
+                                        <span className="font-bold uppercase tracking-wider text-[8px] font-mono text-zinc-500 mr-1.5">Remediation:</span>
+                                        {gap.recommended_remediation}
+                                      </p>
+                                    )}
+                                    {gap.nodes_involved && gap.nodes_involved.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-1.5 items-center">
+                                        <span className="text-[8px] font-mono text-zinc-500 uppercase font-bold mr-1.5">Nodes:</span>
+                                        {gap.nodes_involved.map((n: string, ni: number) => (
+                                          <span key={ni} className="bg-zinc-900 border border-zinc-850 text-zinc-400 text-[9px] px-1.5 py-0.5 rounded font-mono">
+                                            {n}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4 text-zinc-400 font-mono text-[10px]">
+                                  {gap.category}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div className="max-w-[150px] truncate text-zinc-300 font-mono" title={gap.source_document}>
+                                    {gap.source_document}
+                                  </div>
+                                  <span className="text-[10px] text-zinc-550 font-mono block mt-0.5">Page {gap.page}</span>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div className="max-w-xs text-[10px] text-zinc-500 bg-zinc-950/50 border border-zinc-850 p-2 rounded leading-relaxed max-h-[85px] overflow-y-auto font-mono whitespace-pre-wrap">
+                                    {gap.evidence}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

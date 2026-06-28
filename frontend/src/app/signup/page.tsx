@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Cpu, User, Mail, Building, Key, Shield, ArrowRight, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { createJWT } from "../../utils/jwt";
 
 type UserRole = "Admin" | "Engineer" | "Manager" | "Auditor";
 
@@ -20,9 +21,9 @@ export default function SignupPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !company || !password) {
+    if (!name.trim() || !email.trim() || !company.trim() || !password.trim()) {
       setError("Please fill in all fields.");
       return;
     }
@@ -34,25 +35,79 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
-    // Simulate registration and auto-login
-    setTimeout(() => {
-      setSubmitted(true);
-      const session = {
-        email,
-        name,
+    try {
+      const demoEmails = [
+        "admin@ikip-platform.com",
+        "engineer@ikip-platform.com",
+        "manager@ikip-platform.com",
+        "auditor@ikip-platform.com"
+      ];
+      
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      let registeredUsers = [];
+      const storedUsers = localStorage.getItem("ikip_registered_users");
+      if (storedUsers) {
+        try {
+          registeredUsers = JSON.parse(storedUsers);
+        } catch (e) {
+          registeredUsers = [];
+        }
+      }
+
+      const emailExists = demoEmails.includes(normalizedEmail) || 
+                          registeredUsers.some((u: any) => u.email.toLowerCase() === normalizedEmail);
+
+      if (emailExists) {
+        setError("An account with this email already exists.");
+        setLoading(false);
+        return;
+      }
+
+      const newUser = {
+        name: name.trim(),
+        email: normalizedEmail,
+        company: company.trim(),
         role,
-        company,
-        avatarSeed: name.split(" ").map(n => n[0]).join(""),
+        password: password.trim()
+      };
+      registeredUsers.push(newUser);
+      localStorage.setItem("ikip_registered_users", JSON.stringify(registeredUsers));
+
+      const avatarSeed = name.trim().split(" ").map(n => n[0]).join("").toUpperCase() || "U";
+      const exp = Math.floor(Date.now() / 1000) + (2 * 60 * 60); // 2 hours default
+      const jwtPayload = {
+        email: normalizedEmail,
+        name: name.trim(),
+        role,
+        company: company.trim(),
+        exp
+      };
+
+      const token = await createJWT(jwtPayload);
+
+      document.cookie = `ikip_session_token=${token}; path=/; SameSite=Lax; Secure`;
+
+      const session = {
+        email: normalizedEmail,
+        name: name.trim(),
+        role,
+        company: company.trim(),
+        avatarSeed,
         timestamp: new Date().toISOString()
       };
       
       localStorage.setItem("ikip_session", JSON.stringify(session));
+      setSubmitted(true);
       
-      // Redirect to dashboard after a short success screen
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);
-    }, 1200);
+    } catch (err: any) {
+      console.error(err);
+      setError("An unexpected error occurred during signup.");
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,234 +1,55 @@
 {
   "nodes": {
-    "problem statement 1": {
-      "name": "Problem Statement 1",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 1
-    },
-    "operations": {
-      "name": "Operations",
-      "type": "Departments",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 1
-    },
-    "scada": {
-      "name": "SCADA",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
+    "ppe": {
+      "name": "PPE",
+      "type": "Safety Items",
+      "source_document": "Safety Manual.pdf",
       "page_number": 1
     },
     "maintenance": {
-      "name": "Maintenance",
+      "name": "MAINTENANCE",
       "type": "Departments",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
+      "source_document": "Safety Manual.pdf",
+      "page_number": 2
+    },
+    "loto": {
+      "name": "LOTO",
+      "type": "Procedures",
+      "source_document": "LOTO Procedure.pdf",
       "page_number": 1
-    },
-    "problem statement 2": {
-      "name": "Problem Statement 2",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 4
-    },
-    "procurement team": {
-      "name": "Procurement Team",
-      "type": "Departments",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 4
-    },
-    "problem statement 3": {
-      "name": "Problem Statement 3",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 6
-    },
-    "problem statement 4": {
-      "name": "Problem Statement 4",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 8
-    },
-    "problem statement 5": {
-      "name": "Problem Statement 5",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 10
-    },
-    "problem statement 6": {
-      "name": "Problem Statement 6",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 12
-    },
-    "problem statement 7": {
-      "name": "Problem Statement 7",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 14
-    },
-    "problem statement 8": {
-      "name": "Problem Statement 8",
-      "type": "Systems",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 16
-    },
-    "building a": {
-      "name": "Building A",
-      "type": "Locations",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 16
-    },
-    "problem statement 87": {
-      "name": "Problem Statement 87",
-      "type": "Systems",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 4
     },
     "maintenance department": {
       "name": "Maintenance Department",
       "type": "Departments",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 25
+      "source_document": "LOTO Procedure.pdf",
+      "page_number": 1
+    },
+    "maintenance team": {
+      "name": "Maintenance Team",
+      "type": "Departments",
+      "source_document": "MAINTENANCE PROCEDURE.pdf",
+      "page_number": 1
     }
   },
   "edges": [
     {
-      "source": "Operations",
-      "target": "Problem Statement 1",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
+      "source": "LOTO",
+      "target": "MAINTENANCE",
+      "type": "MAINTAINED_BY",
+      "source_document": "LOTO Procedure.pdf",
       "page_number": 1
     },
     {
-      "source": "SCADA",
-      "target": "Problem Statement 1",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
+      "source": "MAINTENANCE",
+      "target": "MAINTENANCE",
+      "type": "MAINTAINED_BY",
+      "source_document": "MAINTENANCE PROCEDURE.pdf",
       "page_number": 1
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 1",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 1
-    },
-    {
-      "source": "Procurement Team",
-      "target": "Problem Statement 2",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 4
-    },
-    {
-      "source": "Maintenance",
-      "target": "Operations",
-      "type": "MAINTAINED_BY",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 6
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 3",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 6
-    },
-    {
-      "source": "Problem Statement 3",
-      "target": "Operations",
-      "type": "MAINTAINED_BY",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 6
-    },
-    {
-      "source": "Operations",
-      "target": "Problem Statement 6",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 12
-    },
-    {
-      "source": "Problem Statement 8",
-      "target": "Operations",
-      "type": "MAINTAINED_BY",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 16
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 8",
-      "type": "CONNECTED_TO",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 16
-    },
-    {
-      "source": "Problem Statement 8",
-      "target": "Building A",
-      "type": "LOCATED_IN",
-      "source_document": "6a38ce305640d_ET_AI_Hackathon_2026_Problem_Statements.pdf",
-      "page_number": 16
-    },
-    {
-      "source": "Problem Statement 5",
-      "target": "Maintenance",
-      "type": "MAINTAINED_BY",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 3
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 87",
-      "type": "CONNECTED_TO",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 4
-    },
-    {
-      "source": "Maintenance",
-      "target": "Maintenance",
-      "type": "MAINTAINED_BY",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 7
-    },
-    {
-      "source": "Problem Statement 87",
-      "target": "Maintenance",
-      "type": "MAINTAINED_BY",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 7
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 87",
-      "type": "USES",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 8
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 87",
-      "type": "REFERENCES",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 32
-    },
-    {
-      "source": "Maintenance",
-      "target": "Building A",
-      "type": "LOCATED_IN",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 39
-    },
-    {
-      "source": "Maintenance",
-      "target": "Problem Statement 87",
-      "type": "DEPENDS_ON",
-      "source_document": "Maintenance_Manual_2024_EN.pdf",
-      "page_number": 40
     }
   ],
   "metadata": {
-    "node_count": 15,
-    "edge_count": 19,
-    "last_updated": "2026-06-27T19:01:43.189259"
+    "node_count": 5,
+    "edge_count": 2,
+    "last_updated": "2026-06-28T18:09:48.981923"
   }
 }

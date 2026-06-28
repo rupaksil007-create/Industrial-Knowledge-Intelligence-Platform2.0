@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Cpu, Shield, Key, Eye, EyeOff, User, ArrowRight, HardHat, FileCheck, ClipboardList, Settings } from "lucide-react";
 import { motion } from "framer-motion";
+import { createJWT } from "../../utils/jwt";
 
 type UserRole = "Admin" | "Engineer" | "Manager" | "Auditor";
 
@@ -48,12 +49,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("Engineer");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       setError("Please fill in all fields.");
       return;
     }
@@ -61,20 +63,92 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Simulate authentication
-    setTimeout(() => {
-      const name = demoUsers[role]?.name || "Operational User";
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      let matchedUser = null;
+      
+      const demoUserKey = Object.keys(demoUsers).find(
+        (key) => demoUsers[key as UserRole].email.toLowerCase() === normalizedEmail
+      ) as UserRole | undefined;
+
+      if (demoUserKey) {
+        if (password !== "demo-password-2026") {
+          setError("Incorrect password. Please try again.");
+          setLoading(false);
+          return;
+        }
+        matchedUser = {
+          name: demoUsers[demoUserKey].name,
+          email: demoUsers[demoUserKey].email,
+          role: demoUserKey,
+          company: "IKIP Demo Org"
+        };
+      } else {
+        let registeredUsers = [];
+        const storedUsers = localStorage.getItem("ikip_registered_users");
+        if (storedUsers) {
+          try {
+            registeredUsers = JSON.parse(storedUsers);
+          } catch (e) {
+            registeredUsers = [];
+          }
+        }
+        
+        const found = registeredUsers.find((u: any) => u.email.toLowerCase() === normalizedEmail);
+        if (!found) {
+          setError("Invalid email. No account associated with this email address.");
+          setLoading(false);
+          return;
+        }
+        
+        if (found.password !== password) {
+          setError("Incorrect password. Please try again.");
+          setLoading(false);
+          return;
+        }
+        
+        matchedUser = found;
+      }
+
+      setRole(matchedUser.role);
+
+      const avatarSeed = matchedUser.name.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "U";
+      
+      const expirationSeconds = rememberMe ? (30 * 24 * 60 * 60) : (2 * 60 * 60);
+      const exp = Math.floor(Date.now() / 1000) + expirationSeconds;
+      
+      const jwtPayload = {
+        email: matchedUser.email,
+        name: matchedUser.name,
+        role: matchedUser.role,
+        company: matchedUser.company || "IKIP Platform",
+        exp
+      };
+
+      const token = await createJWT(jwtPayload);
+
+      let cookieString = `ikip_session_token=${token}; path=/; SameSite=Lax; Secure`;
+      if (rememberMe) {
+        cookieString += `; max-age=${expirationSeconds}`;
+      }
+      document.cookie = cookieString;
+
       const session = {
-        email,
-        name,
-        role,
-        avatarSeed: name.split(" ").map(n => n[0]).join(""),
+        email: matchedUser.email,
+        name: matchedUser.name,
+        role: matchedUser.role,
+        avatarSeed,
         timestamp: new Date().toISOString()
       };
       
       localStorage.setItem("ikip_session", JSON.stringify(session));
       router.push("/dashboard");
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      setError("An unexpected error occurred during authentication.");
+      setLoading(false);
+    }
   };
 
   const fillDemoUser = (selectedRole: UserRole) => {
@@ -194,6 +268,19 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center pt-1">
+              <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="accent-cyan-500 rounded border-zinc-800 bg-zinc-900 focus:ring-cyan-500 w-4 h-4 cursor-pointer"
+                />
+                Remember Me
+              </label>
             </div>
 
             {/* Submit Button */}
