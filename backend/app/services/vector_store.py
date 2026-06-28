@@ -348,6 +348,18 @@ class VectorStore:
 
     def search(self, query: str, n_results: int = 5, metadata_filter: dict = None, debug: bool = False) -> list[dict]:
         """
+        Compatibility wrapper for hybrid_search.
+        """
+        return self.hybrid_search(
+            query=query,
+            n_results=n_results,
+            doc_ids=None,
+            metadata_filter=metadata_filter,
+            debug=debug
+        )
+
+    def hybrid_search(self, query: str, n_results: int = 5, doc_ids: list[str] | None = None, metadata_filter: dict = None, debug: bool = False) -> list[dict]:
+        """
         Performs hybrid search (Semantic Vector + BM25 keyword matching) 
         and fuses results using Reciprocal Rank Fusion (RRF).
         Applies document prioritization boosts and metadata filters.
@@ -370,21 +382,40 @@ class VectorStore:
                 elif len(filter_items) > 1:
                     where_clause = {"$and": filter_items}
 
-            # 3. Lazy build / fit the global BM25 index once (reused across all queries)
-            if self._bm25_cache is None:
-                logger.info("Building global BM25 index cache to optimize memory footprint...")
-                all_db_chunks = self.collection.get(include=["documents"])
-                if all_db_chunks and all_db_chunks["ids"]:
-                    self._bm25_cache = BM25(all_db_chunks["documents"])
-                    self._bm25_id_to_index = {cid: idx for idx, cid in enumerate(all_db_chunks["ids"])}
-                    logger.info(f"Global BM25 cache successfully built with {len(all_db_chunks['ids'])} chunks.")
+            # Build where_filter based on doc_ids
+            where_filter = None
+            if doc_ids and len(doc_ids) == 1:
+                where_filter = {"doc_id": doc_ids[0]}
+            elif doc_ids and len(doc_ids) > 1:
+                where_filter = {"doc_id": {"$in": doc_ids}}
+
+            # 3. Lazy build / fit the global/local BM25 index
+            if where_filter:
+                db_chunks = self.collection.get(where=where_filter, include=["documents"])
+                if db_chunks and db_chunks["ids"]:
+                    current_bm25 = BM25(db_chunks["documents"])
+                    current_bm25_id_to_index = {cid: idx for idx, cid in enumerate(db_chunks["ids"])}
                 else:
-                    self._bm25_cache = None
-                    self._bm25_id_to_index = {}
+                    current_bm25 = None
+                    current_bm25_id_to_index = {}
+            else:
+                if self._bm25_cache is None:
+                    logger.info("Building global BM25 index cache to optimize memory footprint...")
+                    all_db_chunks = self.collection.get(include=["documents"])
+                    if all_db_chunks and all_db_chunks["ids"]:
+                        self._bm25_cache = BM25(all_db_chunks["documents"])
+                        self._bm25_id_to_index = {cid: idx for idx, cid in enumerate(all_db_chunks["ids"])}
+                        logger.info(f"Global BM25 cache successfully built with {len(all_db_chunks['ids'])} chunks.")
+                    else:
+                        self._bm25_cache = None
+                        self._bm25_id_to_index = {}
+                current_bm25 = self._bm25_cache
+                current_bm25_id_to_index = self._bm25_id_to_index
             
             # 4. Fetch ONLY metadata/IDs for candidate chunks matching filters (saves massive memory!)
+            candidate_chunks_where = where_filter if where_filter else (where_clause if where_clause else None)
             candidate_chunks = self.collection.get(
-                where=where_clause if where_clause else None,
+                where=candidate_chunks_where,
                 include=["metadatas"]
             )
             
@@ -400,11 +431,11 @@ class VectorStore:
             bm25_scores = {}
             bm25_ranked = []
             
-            if self._bm25_cache:
+            if current_bm25:
                 for cid in candidate_chunks["ids"]:
-                    idx = self._bm25_id_to_index.get(cid)
+                    idx = current_bm25_id_to_index.get(cid)
                     if idx is not None:
-                        score = self._bm25_cache.get_score(query_tokens, idx)
+                        score = current_bm25.get_score(query_tokens, idx)
                         bm25_scores[cid] = score
                         if score > 0:
                             bm25_ranked.append((cid, score))
@@ -414,11 +445,18 @@ class VectorStore:
             bm25_ranked_ids = [item[0] for item in bm25_ranked]
 
             # 5. Run Semantic Vector search via ChromaDB
-            semantic_results = self.collection.query(
-                query_texts=[expanded_query],
-                n_results=20,
-                where=where_clause if where_clause else None
-            )
+            if where_filter:
+                semantic_results = self.collection.query(
+                    query_texts=[expanded_query],
+                    n_results=20,
+                    where=where_filter
+                )
+            else:
+                semantic_results = self.collection.query(
+                    query_texts=[expanded_query],
+                    n_results=20,
+                    where=where_clause if where_clause else None
+                )
             
             semantic_ranked_ids = []
             semantic_details = {}

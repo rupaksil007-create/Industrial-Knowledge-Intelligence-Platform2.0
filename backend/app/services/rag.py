@@ -291,179 +291,77 @@ class RAGService:
         Retrieves context, classifies query intent, constructs an intent-aware prompt,
         queries the LLM, cleans the response of artifacts, and returns the answer with citations.
         """
-        # 1. Search Vector DB for context
-        search_results = vector_store.search(query, n_results=20, metadata_filter=metadata_filter)
+        # Extract doc_id filter if provided
+        request_obj = metadata_filter.get("request") if metadata_filter else None
+        doc_id = getattr(request_obj, "doc_id", None) if request_obj else None
+        doc_ids = [doc_id] if doc_id else None
+
+        search_results = vector_store.hybrid_search(
+            query=query,
+            n_results=20,
+            doc_ids=doc_ids,
+            metadata_filter=metadata_filter
+        )
         
+        # --- RETRIEVAL-BASED ANSWER SYNTHESIS ---
         if not search_results:
             return {
-                "answer": "No relevant documents have been uploaded yet. Please upload files to the document library first.",
-                "citations": [],
-                "intent": self.classify_intent(query)
+                "answer": "No relevant information found in the knowledge base for your query. Please upload a relevant document first.",
+                "citations": []
             }
-            
-        # 2. Formulate context and citations
-        context_blocks = []
-        citations = []
-        
-        for idx, result in enumerate(search_results):
-            # Clean the chunk text before passing it to the prompt! (Removes OCR/boundary/broken fragments)
-            cleaned_chunk_text = self._clean_retrieved_chunk_text(result['text'])
-            if not cleaned_chunk_text:
+
+        # Clean and deduplicate chunks
+        seen_texts = set()
+        clean_chunks = []
+        for chunk in search_results:
+            raw = chunk.get("text", "")
+            cleaned = self._clean_retrieved_chunk_text(raw)
+            if not cleaned or cleaned in seen_texts:
                 continue
-                
-            context_blocks.append(
-                f"[Doc {idx+1}]: {result['doc_name']} (Page {result['page']})\n"
-                f"Content: {cleaned_chunk_text}\n"
-            )
+            seen_texts.add(cleaned)
+            clean_chunks.append((cleaned, chunk))
+
+        if not clean_chunks:
+            return {
+                "answer": "Documents were found but no clean text could be extracted. Try re-uploading the document.",
+                "citations": []
+            }
+
+        # Build a structured answer grouped by source document
+        doc_groups = {}
+        for cleaned, chunk in clean_chunks[:6]:
+            doc_name = chunk.get("doc_name", "Unknown")
+            if doc_name not in doc_groups:
+                doc_groups[doc_name] = []
+            doc_groups[doc_name].append((cleaned, chunk))
+
+        answer_parts = []
+        for doc_name, items in doc_groups.items():
+            if len(doc_groups) > 1:
+                answer_parts.append(f"**From {doc_name}:**")
+            for cleaned, chunk in items:
+                answer_parts.append(cleaned)
+
+        answer = "\n\n".join(answer_parts).strip()
+        if not answer:
+            answer = "Could not extract a clear answer from the available documents."
+
+        # Build citations
+        citations = []
+        seen_citations = set()
+        for cleaned, chunk in clean_chunks[:5]:
+            key = f"{chunk.get('doc_name','')}_{chunk.get('page','')}"
+            if key in seen_citations:
+                continue
+            seen_citations.add(key)
             citations.append({
-                "doc_name": result["doc_name"],
-                "doc_id": result["doc_id"],
-                "page": result["page"],
-                "text_snippet": cleaned_chunk_text[:300] + ("..." if len(cleaned_chunk_text) > 300 else ""),
-                "score": result["score"],
-                "explanation": result.get("explanation"),
-                "vector_score": result.get("vector_score"),
-                "bm25_score": result.get("bm25_score"),
-                "rrf_score": result.get("rrf_score"),
-                "document_boost": result.get("document_boost"),
-                "final_score": result.get("final_score")
+                "doc_name": chunk.get("doc_name", "Unknown"),
+                "page": chunk.get("page", 1),
+                "text": chunk.get("text", "")[:300],
+                "score": chunk.get("score", 0)
             })
-            
-        context_str = "\n---\n".join(context_blocks)
-        
-        # 3. Classify Intent and Setup Prompt Instructions
-        intent = self.classify_intent(query)
-        
-        intent_instructions = ""
-        if intent == "overview":
-            intent_instructions = (
-                "QUERY INTENT: CONCISE OVERVIEW\n"
-                "INSTRUCTIONS for Overview:\n"
-                "1. Provide a concise, high-level overview of the target problem statement or topic.\n"
-                "2. Present the overview as a bulleted list of 5 bullet points MAXIMUM. Do not output more than 5 bullet points.\n"
-                "3. Each bullet point must be a single, complete, and highly informative sentence. Synthesize the core challenge and main objective."
-            )
-        elif intent == "summary":
-            intent_instructions = (
-                "QUERY INTENT: EXECUTIVE SUMMARY\n"
-                "INSTRUCTIONS for Executive Summary:\n"
-                "1. Provide a structured executive summary of the target problem statement or topic.\n"
-                "2. You MUST use these exact markdown headings: '### Executive Summary', '### Problem Context', '### Challenge Statement', and '### Expected Outcome'.\n"
-                "3. Use brief, highly synthesized bullet points or short paragraphs under each heading. Do not repeat raw text or include conversational filler."
-            )
-        elif intent == "requirements":
-            intent_instructions = (
-                "QUERY INTENT: KEY REQUIREMENTS ONLY\n"
-                "INSTRUCTIONS for Requirements:\n"
-                "1. Extract and list the requirements grouped under these exact headings: '### Functional Requirements', '### Business Requirements', and '### System Objectives'.\n"
-                "2. Present each group as a clean, bulleted list. Synthesize the points and do not copy raw text.\n"
-                "3. WARNING: Never include evaluation criteria, judging criteria, or scoring weights in this section. Focus purely on operational and system requirements."
-            )
-        elif intent == "comparison":
-            intent_instructions = (
-                "QUERY INTENT: COMPARISON\n"
-                "INSTRUCTIONS for Comparison:\n"
-                "1. Generate a structured Markdown comparison table contrasting the different problem statements.\n"
-                "2. You MUST use these exact columns: | Area | Problem 7 | Problem 8 |.\n"
-                "3. You MUST include exactly these five rows in the 'Area' column: 'Theme', 'Challenge', 'Technologies', 'Deliverables', 'Outcome'.\n"
-                "4. Keep table cell values concise, highly synthesized, and directly comparable. Do not paste long paragraphs in table cells."
-            )
-        elif intent == "technologies":
-            intent_instructions = (
-                "QUERY INTENT: SUGGESTED TECHNOLOGIES\n"
-                "INSTRUCTIONS for Suggested Technologies:\n"
-                "1. Extract and list only the suggested technologies, tools, architectures, libraries, or frameworks.\n"
-                "2. Present them in a clean bulleted list. Keep explanations of each technology extremely concise (typically a single sentence or phrase)."
-            )
-        elif intent == "deliverables":
-            intent_instructions = (
-                "QUERY INTENT: EXPECTED DELIVERABLES\n"
-                "INSTRUCTIONS for Expected Deliverables:\n"
-                "1. Extract and list only the expected deliverables, submissions, or final outputs (such as 'Architecture Diagram', 'Presentation Deck', 'Demo Video', or other document-specific artifacts).\n"
-                "2. Present them in a clean, bulleted list. Keep each item concise and focused on the tangible assets that must be submitted.\n"
-                "3. WARNING: Never include evaluation criteria, judging criteria, scoring metrics, or assessment focus in this section."
-            )
-        elif intent == "judging_criteria":
-            intent_instructions = (
-                "QUERY INTENT: JUDGING CRITERIA\n"
-                "INSTRUCTIONS for Judging Criteria:\n"
-                "1. Extract only the judging and evaluation criteria, weightings, or scoring parameters.\n"
-                "2. Present them in a structured Markdown table (e.g., | Evaluation Metric | Description & Weighting |).\n"
-                "3. Keep table cell values highly synthesized, concise, and free of fluff. Do not include general deliverables or context."
-            )
-            
-        universal_instructions = (
-            "UNIVERSAL QUALITY RULES:\n"
-            "1. ANALYTICAL ROLE: Act as an expert Industrial Knowledge Analyst. Do NOT simply retrieve or dump raw text chunks. "
-            "Use the retrieved context only as evidence to synthesize a clean, high-level analytical summary. Your response must read like a professional consulting report.\n"
-            "2. NO TRUNCATION ARTIFACTS OR FRAGMENTS: You MUST NOT output any partial sentences, OCR fragments, random characters, or ellipses (...). "
-            "Every single sentence must be grammatically complete and fully resolved. If a source fact in the context is incomplete or cut off, "
-            "either reconstruct it logically or ignore it entirely.\n"
-            "3. DE-DUPLICATION: Merge and consolidate redundant details. Each fact or parameter must be stated only once in a cohesive statement.\n"
-            "4. CITATION PLACEMENT: Place source citations (e.g., [Doc X] (Page Y) or (Document Name, Page Y)) ONLY at the end of synthesized statements or paragraphs. "
-            "Never place citations in the middle of a sentence or as part of the active phrasing. Place them after the final punctuation."
-        )
-        
-        # 4. LLM QA Prompt
-        prompt = (
-            "You are an expert Industrial Knowledge Intelligence Agent. Your goal is to provide highly synthesized, professional, "
-            "industrial-engineering style answers based on the provided document context.\n\n"
-            f"{intent_instructions}\n\n"
-            f"{universal_instructions}\n\n"
-            f"Context:\n{context_str}\n\n"
-            f"Query: {query}\n\n"
-            "Answer:"
-        )
-        
-        answer = ""
-        answer_source = "Unknown"
-        
-        if self.provider == "openai" and self.client:
-            try:
-                response = self.client.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are a professional industrial intelligence assistant."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.2
-                )
-                answer = response.choices[0].message.content.strip()
-                answer_source = f"OpenAI ({settings.OPENAI_MODEL})"
-            except Exception as e:
-                logger.error(f"OpenAI completion failed: {type(e).__name__}: {e}", exc_info=True)
-                logger.info("Falling back to mock generator.")
-                answer = self._generate_mock_answer(query, search_results)
-                answer_source = "Offline Mock Fallback"
-                
-        elif self.provider == "gemini" and self.client:
-            try:
-                response = self.client.generate_content(
-                    prompt,
-                    generation_config={"temperature": 0.2}
-                )
-                answer = response.text.strip()
-                answer_source = f"Gemini ({settings.GEMINI_MODEL})"
-            except Exception as e:
-                logger.error(f"Gemini completion failed: {type(e).__name__}: {e}", exc_info=True)
-                logger.info("Falling back to mock generator.")
-                answer = self._generate_mock_answer(query, search_results)
-                answer_source = "Offline Mock Fallback"
-                
-        else: # provider == "mock"
-            answer = self._generate_mock_answer(query, search_results)
-            answer_source = "Offline Mock"
-            
-        # Post-process response to ensure highest quality
-        answer = self._clean_synthesis_artifacts(answer)
-        
-        logger.info(f"Query answered successfully. [Answer Source: {answer_source}]")
-            
-        return {
-            "answer": answer,
-            "citations": citations,
-            "intent": intent
-        }
+
+        return {"answer": answer, "citations": citations}
 
     def _generate_mock_answer(self, query: str, search_results: list[dict]) -> str:
         """
