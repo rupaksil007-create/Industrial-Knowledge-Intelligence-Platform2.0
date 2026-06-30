@@ -23,12 +23,6 @@
       "type": "Departments",
       "source_document": "LOTO Procedure.pdf",
       "page_number": 1
-    },
-    "maintenance team": {
-      "name": "Maintenance Team",
-      "type": "Departments",
-      "source_document": "MAINTENANCE PROCEDURE.pdf",
-      "page_number": 1
     }
   },
   "edges": [
@@ -38,18 +32,11 @@
       "type": "MAINTAINED_BY",
       "source_document": "LOTO Procedure.pdf",
       "page_number": 1
-    },
-    {
-      "source": "MAINTENANCE",
-      "target": "MAINTENANCE",
-      "type": "MAINTAINED_BY",
-      "source_document": "MAINTENANCE PROCEDURE.pdf",
-      "page_number": 1
     }
   ],
   "metadata": {
-    "node_count": 5,
-    "edge_count": 2,
-    "last_updated": "2026-06-29T02:17:18.076091"
+    "node_count": 4,
+    "edge_count": 1,
+    "last_updated": "2026-06-30T14:32:30.259851"
   }
 }
