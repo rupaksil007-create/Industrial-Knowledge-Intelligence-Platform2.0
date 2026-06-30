@@ -1,0 +1,142 @@
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-06-29T12:29:38.102251+00:00"}
+{"event": "upload_deleted", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-06-29T12:31:09.222357+00:00"}
+{"event": "upload_started", "doc_id": "de09996a0eddd1182e1af59e82af7137", "filename": "Safety Manual 2.pdf", "size_bytes": 0, "ts": "2026-06-29T12:31:56.337520+00:00"}
+{"event": "upload_parsed", "doc_id": "de09996a0eddd1182e1af59e82af7137", "filename": "Safety Manual 2.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-29T12:31:56.414213+00:00"}
+{"event": "upload_chunked", "doc_id": "de09996a0eddd1182e1af59e82af7137", "filename": "Safety Manual 2.pdf", "total_chunks": 5, "ts": "2026-06-29T12:31:59.928726+00:00"}
+{"event": "upload_indexed", "doc_id": "de09996a0eddd1182e1af59e82af7137", "filename": "Safety Manual 2.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-29T12:31:59.932062+00:00"}
+{"event": "upload_deleted", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "doc_name": "Safety Manual.pdf", "ts": "2026-06-29T12:37:03.014698+00:00"}
+{"event": "upload_deleted", "doc_id": "de09996a0eddd1182e1af59e82af7137", "doc_name": "Safety Manual 2.pdf", "ts": "2026-06-29T12:37:05.267185+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-29T12:41:46.845763+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-29T12:41:46.935914+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-29T12:41:50.373472+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-29T12:41:50.374503+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-29T12:53:49.544020+00:00"}
+{"event": "upload_duplicate", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "ts": "2026-06-29T12:53:49.548046+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-29T12:53:49.601104+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-29T12:53:53.014543+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-29T12:53:53.015048+00:00"}
+{"event": "upload_deleted", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "doc_name": "Safety Manual.pdf", "ts": "2026-06-29T12:54:09.627326+00:00"}
+{"event": "upload_started", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:56:43.834279+00:00"}
+{"event": "upload_parsed", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:56:43.850737+00:00"}
+{"event": "upload_chunked", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:56:45.506977+00:00"}
+{"event": "upload_indexed", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:56:45.508097+00:00"}
+{"event": "upload_started", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:56:53.050893+00:00"}
+{"event": "upload_parsed", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:56:53.061802+00:00"}
+{"event": "upload_chunked", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:56:54.914516+00:00"}
+{"event": "upload_indexed", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:56:54.916531+00:00"}
+{"event": "upload_started", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:56:56.968003+00:00"}
+{"event": "upload_parsed", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:56:56.976179+00:00"}
+{"event": "upload_chunked", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:56:58.694195+00:00"}
+{"event": "upload_indexed", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:56:58.695139+00:00"}
+{"event": "upload_deleted", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "doc_name": "Compliance_Doc_Test.pdf", "ts": "2026-06-29T12:57:11.151614+00:00"}
+{"event": "upload_deleted", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "doc_name": "Operations_Guide_Test.pdf", "ts": "2026-06-29T12:57:22.275927+00:00"}
+{"event": "upload_started", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:58:40.428687+00:00"}
+{"event": "upload_parsed", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:58:40.441141+00:00"}
+{"event": "upload_chunked", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:58:42.189334+00:00"}
+{"event": "upload_indexed", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:58:42.190215+00:00"}
+{"event": "upload_started", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:58:51.152873+00:00"}
+{"event": "upload_parsed", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:58:51.166682+00:00"}
+{"event": "upload_chunked", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:58:52.915943+00:00"}
+{"event": "upload_indexed", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "filename": "Operations_Guide_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:58:52.916942+00:00"}
+{"event": "upload_started", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:58:54.974605+00:00"}
+{"event": "upload_duplicate", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "ts": "2026-06-29T12:58:54.979616+00:00"}
+{"event": "upload_parsed", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:58:54.984176+00:00"}
+{"event": "upload_chunked", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:58:56.690572+00:00"}
+{"event": "upload_indexed", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "filename": "Safety_Manual_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:58:56.690572+00:00"}
+{"event": "upload_deleted", "doc_id": "a565eaafd9c38be41e57f1fbca761703", "doc_name": "Safety_Manual_Test.pdf", "ts": "2026-06-29T12:59:09.221227+00:00"}
+{"event": "upload_deleted", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "doc_name": "Compliance_Doc_Test.pdf", "ts": "2026-06-29T12:59:20.291629+00:00"}
+{"event": "upload_started", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "size_bytes": 0, "ts": "2026-06-29T12:59:24.322495+00:00"}
+{"event": "upload_parsed", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-29T12:59:24.333817+00:00"}
+{"event": "upload_chunked", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "total_chunks": 1, "ts": "2026-06-29T12:59:26.037084+00:00"}
+{"event": "upload_indexed", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "filename": "Compliance_Doc_Test.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-29T12:59:26.038110+00:00"}
+{"event": "upload_deleted", "doc_id": "6f1e5e12f5e2ffe7412c83853f0552ad", "doc_name": "Operations_Guide_Test.pdf", "ts": "2026-06-29T13:04:06.008169+00:00"}
+{"event": "upload_deleted", "doc_id": "7313a9dede5bddf6274b86f32ef76d1c", "doc_name": "Compliance_Doc_Test.pdf", "ts": "2026-06-29T13:04:08.188271+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-29T13:04:31.756587+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-29T13:04:31.839734+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-29T13:04:35.397262+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-29T13:04:35.398515+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T07:48:46.315719+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T07:48:46.378016+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T07:48:47.731506+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T07:48:47.732504+00:00"}
+{"event": "upload_started", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "size_bytes": 0, "ts": "2026-06-30T07:49:34.747176+00:00"}
+{"event": "upload_parsed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T07:49:34.792081+00:00"}
+{"event": "upload_chunked", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_chunks": 1, "ts": "2026-06-30T07:49:35.606564+00:00"}
+{"event": "upload_indexed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T07:49:35.607602+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-30T07:49:37.668412+00:00"}
+{"event": "upload_duplicate", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "ts": "2026-06-30T07:49:37.674277+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-30T07:49:37.775169+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-30T07:49:39.980133+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-30T07:49:39.982133+00:00"}
+{"event": "upload_deleted", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "doc_name": "Safety Manual.pdf", "ts": "2026-06-30T07:50:31.363172+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-06-30T07:51:25.793927+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T07:51:29.902452+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T07:51:29.957202+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T07:51:30.813881+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T07:51:30.814793+00:00"}
+{"event": "upload_deleted", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-06-30T08:05:31.577544+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T08:17:25.543666+00:00"}
+{"event": "upload_duplicate", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "ts": "2026-06-30T08:17:25.548168+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:17:25.597733+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T08:17:26.628979+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:17:26.630460+00:00"}
+{"event": "upload_failed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "reason": "'ComplianceEngine' object has no attribute 'invalidate_cache'", "ts": "2026-06-30T08:17:26.631033+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-06-30T08:17:39.637494+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T08:43:39.798324+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:43:39.873046+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T08:43:40.915989+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:43:40.916990+00:00"}
+{"event": "upload_started", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "size_bytes": 0, "ts": "2026-06-30T08:43:47.673663+00:00"}
+{"event": "upload_parsed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:43:47.715325+00:00"}
+{"event": "upload_chunked", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_chunks": 1, "ts": "2026-06-30T08:43:48.528166+00:00"}
+{"event": "upload_indexed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:43:48.528897+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-30T08:43:50.588983+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-30T08:43:50.672110+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-30T08:43:52.451551+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-30T08:43:52.452065+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-06-30T08:44:03.883363+00:00"}
+{"event": "upload_deleted", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-06-30T08:44:14.688763+00:00"}
+{"event": "upload_started", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "size_bytes": 0, "ts": "2026-06-30T08:44:18.787951+00:00"}
+{"event": "upload_parsed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:44:18.823949+00:00"}
+{"event": "upload_chunked", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_chunks": 1, "ts": "2026-06-30T08:44:19.655308+00:00"}
+{"event": "upload_indexed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:44:19.656309+00:00"}
+{"event": "upload_started", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "size_bytes": 0, "ts": "2026-06-30T08:50:07.359931+00:00"}
+{"event": "upload_duplicate", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-06-30T08:50:07.365021+00:00"}
+{"event": "upload_parsed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:50:07.394352+00:00"}
+{"event": "upload_chunked", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_chunks": 1, "ts": "2026-06-30T08:50:08.398790+00:00"}
+{"event": "upload_indexed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:50:08.401204+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T08:51:24.753613+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:51:24.805627+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T08:51:25.872896+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:51:25.873895+00:00"}
+{"event": "upload_started", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "size_bytes": 0, "ts": "2026-06-30T08:51:35.084588+00:00"}
+{"event": "upload_duplicate", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-06-30T08:51:35.088987+00:00"}
+{"event": "upload_parsed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:51:35.124606+00:00"}
+{"event": "upload_chunked", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_chunks": 1, "ts": "2026-06-30T08:51:35.893799+00:00"}
+{"event": "upload_indexed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:51:35.894812+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-30T08:51:37.947847+00:00"}
+{"event": "upload_duplicate", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "ts": "2026-06-30T08:51:37.952334+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-30T08:51:38.019760+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-30T08:51:40.394948+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-30T08:51:40.394948+00:00"}
+{"event": "upload_deleted", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "doc_name": "Safety Manual.pdf", "ts": "2026-06-30T08:51:51.706205+00:00"}
+{"event": "upload_deleted", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-06-30T08:52:01.455437+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T08:52:05.548145+00:00"}
+{"event": "upload_duplicate", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "ts": "2026-06-30T08:52:05.556868+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:52:05.599802+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T08:52:06.477713+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:52:06.478716+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-06-30T08:53:16.154057+00:00"}
+{"event": "upload_started", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "size_bytes": 0, "ts": "2026-06-30T08:53:31.737003+00:00"}
+{"event": "upload_parsed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_pages": 2, "method": "standard", "ts": "2026-06-30T08:53:31.795231+00:00"}
+{"event": "upload_chunked", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "total_chunks": 5, "ts": "2026-06-30T08:53:33.820364+00:00"}
+{"event": "upload_indexed", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "filename": "Safety Manual.pdf", "vector_count": 5, "status": "READY", "ts": "2026-06-30T08:53:33.821477+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T08:54:01.176877+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T08:54:01.225713+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T08:54:02.153853+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T08:54:02.155864+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-06-30T08:57:30.214280+00:00"}
+{"event": "upload_started", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "size_bytes": 0, "ts": "2026-06-30T09:02:29.327013+00:00"}
+{"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T09:02:29.393110+00:00"}
+{"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T09:02:30.264343+00:00"}
+{"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T09:02:30.266026+00:00"}
