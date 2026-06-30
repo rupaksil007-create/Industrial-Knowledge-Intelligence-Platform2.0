@@ -1,0 +1,262 @@
+[
+  {
+    "status": "INFO",
+    "message": "=== 1. HEALTH CHECK ===",
+    "timestamp": 1782809478.5490043
+  },
+  {
+    "status": "PASS",
+    "message": "Health endpoint: status=200 body={\"status\":\"healthy\",\"app\":\"Industrial Knowledge Intelligence Platform\",\"embedding_provider\":\"chroma\",\"llm_provider\":\"gemini\"}",
+    "timestamp": 1782809480.597043
+  },
+  {
+    "status": "INFO",
+    "message": "=== 2. DOCUMENT LIST ===",
+    "timestamp": 1782809480.597043
+  },
+  {
+    "status": "PASS",
+    "message": "GET /documents: count=2",
+    "timestamp": 1782809482.692182
+  },
+  {
+    "status": "INFO",
+    "message": "Existing documents: 2",
+    "timestamp": 1782809482.692182
+  },
+  {
+    "status": "INFO",
+    "message": "=== 3. UPLOAD 1 PDF ===",
+    "timestamp": 1782809482.692182
+  },
+  {
+    "status": "INFO",
+    "message": "PDF files available: ['LOTO Procedure.pdf', 'QUALITY MANAGEMENT PROGRAM.pdf', 'Safety Manual.pdf']",
+    "timestamp": 1782809482.692182
+  },
+  {
+    "status": "PASS",
+    "message": "Upload 1 PDF (LOTO Procedure.pdf): status=200 body={\"id\":\"268c6b64bb7bb28884393bd81e49840f\",\"name\":\"LOTO Procedure.pdf\",\"total_pages\":1,\"total_vectors\":1,\"method\":\"standard\",\"status\":\"success\",\"message\":\"Successfully parsed 1 pages and indexed 1 vectors. Knowledge base is READY.\"}",
+    "timestamp": 1782809485.8764184
+  },
+  {
+    "status": "INFO",
+    "message": "=== 4. COMPLIANCE AUDIT AFTER 1 PDF ===",
+    "timestamp": 1782809485.8764184
+  },
+  {
+    "status": "INFO",
+    "message": "Ingestion status: READY",
+    "timestamp": 1782809487.9124494
+  },
+  {
+    "status": "PASS",
+    "message": "Compliance analyze after 1 PDF: status=200 body={\"score\":81,\"risk_level\":\"GOOD\",\"audit_status\":\"ACTIVE\",\"total_gaps\":6,\"gaps\":[{\"id\":\"gap_improve_emergency_response_emergency_response_in_case_of_re\",\"severity\":\"Medium\",\"category\":\"Emergency Response\",\"gap\":\"Documentation Improvement: EMERGENCY RESPONSE In case of \ufb01re\",\"status\":\"Opportunity for Improvement\",\"source_document\":\"Safety Manual.pdf\",\"page\":1,\"paragraph\":\"\",\"document_id\":\"fc7491790a4d",
+    "timestamp": 1782809493.0048256
+  },
+  {
+    "status": "INFO",
+    "message": "Compliance score: 81",
+    "timestamp": 1782809493.0048256
+  },
+  {
+    "status": "INFO",
+    "message": "Total gaps: 6",
+    "timestamp": 1782809493.0058265
+  },
+  {
+    "status": "INFO",
+    "message": "=== 5. UPLOAD 3 PDFs ===",
+    "timestamp": 1782809493.0058265
+  },
+  {
+    "status": "INFO",
+    "message": "All available PDFs: ['LOTO Procedure.pdf', 'QUALITY MANAGEMENT PROGRAM.pdf', 'Safety Manual.pdf']",
+    "timestamp": 1782809493.0058265
+  },
+  {
+    "status": "PASS",
+    "message": "Upload PDF (QUALITY MANAGEMENT PROGRAM.pdf): status=200",
+    "timestamp": 1782809495.897715
+  },
+  {
+    "status": "PASS",
+    "message": "Upload PDF (Safety Manual.pdf): status=200",
+    "timestamp": 1782809500.397315
+  },
+  {
+    "status": "INFO",
+    "message": "Total PDFs uploaded in batch: 3",
+    "timestamp": 1782809500.397315
+  },
+  {
+    "status": "INFO",
+    "message": "=== 6. COMPLIANCE AUDIT AFTER 3 PDFs ===",
+    "timestamp": 1782809500.398232
+  },
+  {
+    "status": "INFO",
+    "message": "Ingestion status: READY",
+    "timestamp": 1782809502.4506872
+  },
+  {
+    "status": "PASS",
+    "message": "Compliance analyze after 3 PDFs: status=200",
+    "timestamp": 1782809507.5595653
+  },
+  {
+    "status": "INFO",
+    "message": "Compliance score: 81",
+    "timestamp": 1782809507.5606174
+  },
+  {
+    "status": "INFO",
+    "message": "Total gaps: 6",
+    "timestamp": 1782809507.5606174
+  },
+  {
+    "status": "INFO",
+    "message": "=== 7. DELETE A PDF ===",
+    "timestamp": 1782809507.5606174
+  },
+  {
+    "status": "INFO",
+    "message": "Documents before delete: 3",
+    "timestamp": 1782809509.599842
+  },
+  {
+    "status": "INFO",
+    "message": "Deleting doc_id: fc7491790a4dabc22d8fabbbe3cdfe36, name: Safety Manual.pdf",
+    "timestamp": 1782809509.599842
+  },
+  {
+    "status": "PASS",
+    "message": "Delete document: status=200 body={\"success\":true,\"message\":\"Document deleted successfully.\"}",
+    "timestamp": 1782809511.7089953
+  },
+  {
+    "status": "INFO",
+    "message": "=== 8. COMPLIANCE AUDIT AFTER DELETE ===",
+    "timestamp": 1782809511.7089953
+  },
+  {
+    "status": "INFO",
+    "message": "Ingestion status: READY",
+    "timestamp": 1782809513.764754
+  },
+  {
+    "status": "PASS",
+    "message": "Compliance analyze after delete: status=200",
+    "timestamp": 1782809517.2976737
+  },
+  {
+    "status": "INFO",
+    "message": "Compliance score: 84",
+    "timestamp": 1782809517.2976737
+  },
+  {
+    "status": "INFO",
+    "message": "=== 9. REPLACE A PDF ===",
+    "timestamp": 1782809517.2976737
+  },
+  {
+    "status": "INFO",
+    "message": "Documents available for replace: 2",
+    "timestamp": 1782809519.3511508
+  },
+  {
+    "status": "INFO",
+    "message": "PDFs on disk: ['LOTO Procedure.pdf', 'QUALITY MANAGEMENT PROGRAM.pdf']",
+    "timestamp": 1782809519.3511508
+  },
+  {
+    "status": "INFO",
+    "message": "Replacing doc_id: 3bbdb9918243360855cf22c3305f49c6, name: QUALITY MANAGEMENT PROGRAM.pdf",
+    "timestamp": 1782809519.3511508
+  },
+  {
+    "status": "INFO",
+    "message": "Backed up LOTO Procedure.pdf to C:\\Users\\RUPAK\\AppData\\Local\\Temp\\LOTO Procedure.pdf before delete",
+    "timestamp": 1782809519.3539977
+  },
+  {
+    "status": "PASS",
+    "message": "Delete for replace: status=200",
+    "timestamp": 1782809521.462675
+  },
+  {
+    "status": "PASS",
+    "message": "Re-upload for replace: status=200 body={\"id\":\"268c6b64bb7bb28884393bd81e49840f\",\"name\":\"LOTO Procedure.pdf\",\"total_pages\":1,\"total_vectors\":1,\"method\":\"standard\",\"status\":\"success\",\"message\":\"Successfully parsed 1 pages and indexed 1 vecto",
+    "timestamp": 1782809526.481239
+  },
+  {
+    "status": "INFO",
+    "message": "=== 10. FINAL COMPLIANCE AUDIT ===",
+    "timestamp": 1782809526.481239
+  },
+  {
+    "status": "INFO",
+    "message": "Ingestion status: READY",
+    "timestamp": 1782809528.5389297
+  },
+  {
+    "status": "PASS",
+    "message": "Final compliance analyze: status=200",
+    "timestamp": 1782809531.1808841
+  },
+  {
+    "status": "INFO",
+    "message": "Final compliance score: 91",
+    "timestamp": 1782809531.1808841
+  },
+  {
+    "status": "INFO",
+    "message": "Final total gaps: 1",
+    "timestamp": 1782809531.1808841
+  },
+  {
+    "status": "INFO",
+    "message": "Final risk level: EXCELLENT",
+    "timestamp": 1782809531.1808841
+  },
+  {
+    "status": "INFO",
+    "message": "=== 11. AUDIT LOGS ===",
+    "timestamp": 1782809531.1808841
+  },
+  {
+    "status": "PASS",
+    "message": "Audit log (upload): status=200 records=5",
+    "timestamp": 1782809533.2286475
+  },
+  {
+    "status": "PASS",
+    "message": "Audit log (audit): status=200 records=5",
+    "timestamp": 1782809535.3004563
+  },
+  {
+    "status": "INFO",
+    "message": "=== 12. CACHE INVALIDATION ===",
+    "timestamp": 1782809535.3004563
+  },
+  {
+    "status": "INFO",
+    "message": "KB fingerprint: 4375b64189799f0873a72b6b0dc08a500e987dda5d7dff4f350a3829dadaa769",
+    "timestamp": 1782809537.3544698
+  },
+  {
+    "status": "PASS",
+    "message": "KB fingerprint present: 4375b64189799f0873a72b6b0dc08a500e987dda5d7dff4f350a3829dadaa769",
+    "timestamp": 1782809537.3544698
+  },
+  {
+    "status": "INFO",
+    "message": "=== SUMMARY ===",
+    "timestamp": 1782809537.3544698
+  },
+  {
+    "status": "INFO",
+    "message": "PASSED: 15, FAILED: 0",
+    "timestamp": 1782809537.3544698
+  }
+]
