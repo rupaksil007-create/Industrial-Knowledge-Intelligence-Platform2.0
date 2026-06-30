@@ -1,461 +1,279 @@
 {
-  "score": 70,
-  "risk_level": "MEDIUM RISK",
-  "audit_status": "ACTIVE",
-  "total_gaps": 4,
-  "gaps": [
-    {
-      "id": "gap_missing_permit_to_work",
-      "severity": "High",
-      "category": "Regulatory",
-      "gap": "Missing Permit To Work Program",
-      "source_document": "Global Audits",
-      "page": 1,
-      "evidence": "N/A (No matches found)",
-      "explanation": "The program 'Permit To Work' is completely missing from the operational manuals. Audit details: matched 0 of 4 subparts. Missing: [Permit SOP], [Gas test log], [Confined space permit], [Authorized signatures].",
-      "confidence_score": 1.0,
-      "recommended_remediation": "Compile and upload verified operational guidelines covering 'Permit To Work' procedures.",
-      "nodes_involved": []
-    },
-    {
-      "id": "gap_missing_risk_assessment",
-      "severity": "High",
-      "category": "Safety",
-      "gap": "Missing Risk Assessment Program",
-      "source_document": "Global Audits",
-      "page": 1,
-      "evidence": "N/A (No matches found)",
-      "explanation": "The program 'Risk Assessment' is completely missing from the operational manuals. Audit details: matched 0 of 4 subparts. Missing: [Hazard Identification], [Risk Matrix], [Mitigation controls], [Residual risk check].",
-      "confidence_score": 1.0,
-      "recommended_remediation": "Compile and upload verified operational guidelines covering 'Risk Assessment' procedures.",
-      "nodes_involved": []
-    },
-    {
-      "id": "gap_missing_inspection_checklist",
-      "severity": "High",
-      "category": "Maintenance",
-      "gap": "Missing Inspection Checklist Program",
-      "source_document": "Global Audits",
-      "page": 1,
-      "evidence": "N/A (No matches found)",
-      "explanation": "The program 'Inspection Checklist' is completely missing from the operational manuals. Audit details: matched 0 of 4 subparts. Missing: [Checklist template], [Inspection logs], [Defect tracking], [Sign-off approvals].",
-      "confidence_score": 1.0,
-      "recommended_remediation": "Compile and upload verified operational guidelines covering 'Inspection Checklist' procedures.",
-      "nodes_involved": []
-    },
-    {
-      "id": "gap_missing_incident_reporting",
-      "severity": "High",
-      "category": "Regulatory",
-      "gap": "Missing Incident Reporting Program",
-      "source_document": "Global Audits",
-      "page": 1,
-      "evidence": "N/A (No matches found)",
-      "explanation": "The program 'Incident Reporting' is completely missing from the operational manuals. Audit details: matched 0 of 4 subparts. Missing: [Accident report form], [Near miss logs], [Root cause analysis], [Corrective actions].",
-      "confidence_score": 1.0,
-      "recommended_remediation": "Compile and upload verified operational guidelines covering 'Incident Reporting' procedures.",
-      "nodes_involved": []
-    }
-  ],
-  "coverage_matrix": {
-    "LOTO": 100,
-    "Maintenance": 100,
-    "Quality Management": 100,
-    "Permit To Work": 0,
-    "Risk Assessment": 0,
-    "Inspection Checklist": 0,
-    "Incident Reporting": 0,
-    "Emergency Response": 100,
-    "PPE": 100
-  },
-  "coverage_details": {
-    "LOTO": {
-      "coverage_level": "Fully Covered",
-      "coverage_percentage": 100,
-      "audit_confidence": "High Confidence",
-      "reason_for_decision": "Audit details: matched 4 of 4 subparts. Matched: [Procedure], [Isolation steps], [Verification steps], [Training evidence]. ",
-      "documents_matched": [
-        "LOTO Procedure.pdf"
-      ],
-      "pages_matched": [
-        1
-      ],
-      "evidence_snippets_count": 4,
-      "requirements_satisfied_count": 4,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Procedure": {
-          "status": "satisfied",
-          "doc_name": "LOTO Procedure.pdf",
-          "page": 1,
-          "heading": "LOCKOUT TAGOUT PROCEDURE",
-          "snippet": "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001 Purpose: To ensure equipment is safely isolated before maintenance activities. Procedure: 1. Notify affected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply ...",
-          "confidence": 0.95
+    "score": 83,
+    "risk_level": "GOOD",
+    "audit_status": "ACTIVE",
+    "total_gaps": 4,
+    "gaps": [
+        {
+            "id": "gap_improve_emergency_response_emergency_response_in_case_of_re",
+            "severity": "Medium",
+            "category": "Emergency Response",
+            "gap": "Documentation Improvement: EMERGENCY RESPONSE In case of ﬁre",
+            "status": "Opportunity for Improvement",
+            "source_document": "Safety Manual.pdf",
+            "page": 1,
+            "paragraph": "",
+            "document_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
+            "evidence": "[Section: SECTION 2: EMERGENCY RESPONSE In case of ﬁre:]\n1. AcƟvate the nearest ﬁre alarm. 2. Evacuate through the nearest emergency exit. 3. Report to the designated assembly point. 4. Wait for further instruc Ɵons from emergency personnel. Emergency Coordinator: Rajesh Kumar",
+            "explanation": "Retrieved operational text covers 'EMERGENCY RESPONSE In case of ﬁre' but contains weak documentation details: unclear revision history or document control, missing inspection frequency or review intervals, insufficient training or competency evidence guidelines.",
+            "confidence_score": 0.67,
+            "semantic_similarity": 0.7203496694564819,
+            "keyword_score": 0.0,
+            "requirements": [
+                "EMERGENCY RESPONSE In case of ﬁre"
+            ],
+            "recommended_remediation": "Establish formal version control, effective dates, and a revision log. Define specific verification frequencies or task review intervals. Document operators' training curriculum and practical competency validation rules.",
+            "nodes_involved": []
         },
-        "Isolation steps": {
-          "status": "satisfied",
-          "doc_name": "LOTO Procedure.pdf",
-          "page": 1,
-          "heading": "LOCKOUT TAGOUT PROCEDURE",
-          "snippet": "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001 Purpose: To ensure equipment is safely isolated before maintenance activities. Procedure: 1. Notify affected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply ...",
-          "confidence": 0.7
+        {
+            "id": "gap_improve_lockout_tagout_loto_lockout_tagout_procedure_document_id_loto_001",
+            "severity": "Low",
+            "category": "Lockout/Tagout (LOTO)",
+            "gap": "Documentation Improvement: LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001",
+            "status": "Opportunity for Improvement",
+            "source_document": "LOTO Procedure.pdf",
+            "page": 1,
+            "paragraph": "",
+            "document_id": "268c6b64bb7bb28884393bd81e49840f",
+            "evidence": "[Section: LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001]\nPurpose: To ensure equipment is safely isolated before maintenance ac ƟviƟes. Procedure: 1. NoƟfy aﬀected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply warning tags. 6. Verify isola Ɵon. 7. Perform maintenance. 8. Remove locks and restore opera Ɵon. Responsibility: Maintenance Department Revision: 1.0",
+            "explanation": "Retrieved operational text covers 'LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001' but contains weak documentation details: missing inspection frequency or review intervals.",
+            "confidence_score": 0.83,
+            "semantic_similarity": 0.7688043117523193,
+            "keyword_score": 0.0,
+            "requirements": [
+                "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001"
+            ],
+            "recommended_remediation": "Define specific verification frequencies or task review intervals.",
+            "nodes_involved": []
         },
-        "Verification steps": {
-          "status": "satisfied",
-          "doc_name": "LOTO Procedure.pdf",
-          "page": 1,
-          "heading": "LOCKOUT TAGOUT PROCEDURE",
-          "snippet": "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001 Purpose: To ensure equipment is safely isolated before maintenance activities. Procedure: 1. Notify affected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply ...",
-          "confidence": 0.77
+        {
+            "id": "gap_improve_personal_protective_equipment_personal_protective_equipment_ppe_all_employees_must_wear",
+            "severity": "Medium",
+            "category": "Personal Protective Equipment",
+            "gap": "Documentation Improvement: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear",
+            "status": "Opportunity for Improvement",
+            "source_document": "Safety Manual.pdf",
+            "page": 1,
+            "paragraph": "",
+            "document_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
+            "evidence": "[Section: SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear:]\n- Safety Helmet - Safety Shoes - Safety Glasses - ProtecƟve Gloves Visitors entering produc Ɵon areas must wear helmets and safety glasses.",
+            "explanation": "Retrieved operational text covers 'PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear' but contains weak documentation details: unclear revision history or document control, unclear responsibilities or role assignment, missing inspection frequency or review intervals, insufficient training or competency evidence guidelines.",
+            "confidence_score": 0.59,
+            "semantic_similarity": 0.7183607816696167,
+            "keyword_score": 0.0,
+            "requirements": [
+                "PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear"
+            ],
+            "recommended_remediation": "Establish formal version control, effective dates, and a revision log. Explicitly designate responsible roles (e.g., Supervisor, Authorized Technician) for execution. Define specific verification frequencies or task review intervals. Document operators' training curriculum and practical competency validation rules.",
+            "nodes_involved": []
         },
-        "Training evidence": {
-          "status": "satisfied",
-          "doc_name": "LOTO Procedure.pdf",
-          "page": 1,
-          "heading": "LOCKOUT TAGOUT PROCEDURE",
-          "snippet": "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001 Purpose: To ensure equipment is safely isolated before maintenance activities. Procedure: 1. Notify affected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply ...",
-          "confidence": 0.71
+        {
+            "id": "gap_improve_training_competency_training_all_employees_must_receive_annual_safety_training",
+            "severity": "Medium",
+            "category": "Training & Competency",
+            "gap": "Documentation Improvement: TRAINING All employees must receive annual safety training.",
+            "status": "Opportunity for Improvement",
+            "source_document": "Safety Manual.pdf",
+            "page": 2,
+            "paragraph": "",
+            "document_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
+            "evidence": "[Section: SECTION 4: TRAINING All employees must receive annual safety training.]\nTraining records must be maintained by the HR department.",
+            "explanation": "Retrieved operational text covers 'TRAINING All employees must receive annual safety training.' but contains weak documentation details: unclear revision history or document control, unclear responsibilities or role assignment, missing inspection frequency or review intervals, vague emergency instructions or verification protocols.",
+            "confidence_score": 0.59,
+            "semantic_similarity": 0.7587795853614807,
+            "keyword_score": 0.0,
+            "requirements": [
+                "TRAINING All employees must receive annual safety training."
+            ],
+            "recommended_remediation": "Establish formal version control, effective dates, and a revision log. Explicitly designate responsible roles (e.g., Supervisor, Authorized Technician) for execution. Define specific verification frequencies or task review intervals. Add detailed safe isolation, emergency contact list, or muster point details.",
+            "nodes_involved": []
         }
-      }
+    ],
+    "coverage_matrix": {
+        "Emergency Response": 67,
+        "Lockout/Tagout (LOTO)": 83,
+        "Personal Protective Equipment": 59,
+        "Training & Competency": 59
     },
-    "Maintenance": {
-      "coverage_level": "Fully Covered",
-      "coverage_percentage": 100,
-      "audit_confidence": "High Confidence",
-      "reason_for_decision": "Audit details: matched 5 of 5 subparts. Matched: [SOP], [Schedule], [Logs], [Responsible Team], [Training Record]. ",
-      "documents_matched": [
-        "MAINTENANCE PROCEDURE.pdf",
+    "coverage_details": {
+        "Emergency Response": {
+            "category": "Emergency Response",
+            "coverage_level": "Partially Covered",
+            "coverage_percentage": 67,
+            "audit_confidence": "Medium Confidence",
+            "average_confidence": 0.67,
+            "reason_for_decision": "Matched 1/1 requirements. Satisfied: [EMERGENCY RESPONSE In case of ﬁre].",
+            "documents_matched": [
+                "Safety Manual.pdf"
+            ],
+            "pages_matched": [
+                1
+            ],
+            "evidence_snippets_count": 1,
+            "requirements_satisfied_count": 1,
+            "requirements_total_count": 1,
+            "requirements_status": {
+                "EMERGENCY RESPONSE In case of ﬁre": {
+                    "status": "satisfied",
+                    "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
+                    "doc_name": "Safety Manual.pdf",
+                    "page": 1,
+                    "heading": "SECTION 2: EMERGENCY RESPONSE In case of ﬁre:",
+                    "snippet": "[Section: SECTION 2: EMERGENCY RESPONSE In case of ﬁre:]\n1. AcƟvate the nearest ﬁre alarm. 2. Evacuate through the nearest emergency exit. 3. Report to the designated assembly point. 4. Wait for further instruc Ɵons from emergency personnel. Emergency Coordinator: Rajesh Kumar",
+                    "confidence": 0.67,
+                    "matched_query": "emergency response case ﬁre",
+                    "semantic_similarity": 0.7203496694564819
+                }
+            }
+        },
+        "Lockout/Tagout (LOTO)": {
+            "category": "Lockout/Tagout (LOTO)",
+            "coverage_level": "Partially Covered",
+            "coverage_percentage": 83,
+            "audit_confidence": "Medium Confidence",
+            "average_confidence": 0.83,
+            "reason_for_decision": "Matched 1/1 requirements. Satisfied: [LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001].",
+            "documents_matched": [
+                "LOTO Procedure.pdf"
+            ],
+            "pages_matched": [
+                1
+            ],
+            "evidence_snippets_count": 1,
+            "requirements_satisfied_count": 1,
+            "requirements_total_count": 1,
+            "requirements_status": {
+                "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001": {
+                    "status": "satisfied",
+                    "doc_id": "268c6b64bb7bb28884393bd81e49840f",
+                    "doc_name": "LOTO Procedure.pdf",
+                    "page": 1,
+                    "heading": "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001",
+                    "snippet": "[Section: LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001]\nPurpose: To ensure equipment is safely isolated before maintenance ac ƟviƟes. Procedure: 1. NoƟfy aﬀected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply warning tags. 6. Verify isola Ɵon. 7. Perform maintenance. 8. Remove locks and restore opera Ɵon. Responsibility: Maintenance Department Revision: 1.0",
+                    "confidence": 0.83,
+                    "matched_query": "lockout tagout loto procedure document 001",
+                    "semantic_similarity": 0.7688043117523193
+                }
+            }
+        },
+        "Personal Protective Equipment": {
+            "category": "Personal Protective Equipment",
+            "coverage_level": "Partially Covered",
+            "coverage_percentage": 59,
+            "audit_confidence": "Medium Confidence",
+            "average_confidence": 0.59,
+            "reason_for_decision": "Matched 1/1 requirements. Satisfied: [PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear].",
+            "documents_matched": [
+                "Safety Manual.pdf"
+            ],
+            "pages_matched": [
+                1
+            ],
+            "evidence_snippets_count": 1,
+            "requirements_satisfied_count": 1,
+            "requirements_total_count": 1,
+            "requirements_status": {
+                "PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear": {
+                    "status": "satisfied",
+                    "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
+                    "doc_name": "Safety Manual.pdf",
+                    "page": 1,
+                    "heading": "SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear:",
+                    "snippet": "[Section: SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear:]\n- Safety Helmet - Safety Shoes - Safety Glasses - ProtecƟve Gloves Visitors entering produc Ɵon areas must wear helmets and safety glasses.",
+                    "confidence": 0.59,
+                    "matched_query": "personal protective equipment ppe all employees must wear",
+                    "semantic_similarity": 0.7183607816696167
+                }
+            }
+        },
+        "Training & Competency": {
+            "category": "Training & Competency",
+            "coverage_level": "Partially Covered",
+            "coverage_percentage": 59,
+            "audit_confidence": "Medium Confidence",
+            "average_confidence": 0.59,
+            "reason_for_decision": "Matched 1/1 requirements. Satisfied: [TRAINING All employees must receive annual safety training.].",
+            "documents_matched": [
+                "Safety Manual.pdf"
+            ],
+            "pages_matched": [
+                2
+            ],
+            "evidence_snippets_count": 1,
+            "requirements_satisfied_count": 1,
+            "requirements_total_count": 1,
+            "requirements_status": {
+                "TRAINING All employees must receive annual safety training.": {
+                    "status": "satisfied",
+                    "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
+                    "doc_name": "Safety Manual.pdf",
+                    "page": 2,
+                    "heading": "SECTION 4: TRAINING All employees must receive annual safety training.",
+                    "snippet": "[Section: SECTION 4: TRAINING All employees must receive annual safety training.]\nTraining records must be maintained by the HR department.",
+                    "confidence": 0.59,
+                    "matched_query": "training competency all employees must receive annual safety",
+                    "semantic_similarity": 0.7587795853614807
+                }
+            }
+        }
+    },
+    "gaps_summary": {
+        "missing_procedures": 4,
+        "missing_inspections": 0,
+        "missing_certifications": 1,
+        "missing_safety_records": 2
+    },
+    "category_summary": {
+        "Safety": 2,
+        "Maintenance": 0,
+        "Inspection": 0,
+        "Operations": 0,
+        "Quality": 0,
+        "Regulatory": 1
+    },
+    "historical_scores": [
+        {
+            "date": "2026-06-30",
+            "score": 83
+        }
+    ],
+    "uploaded_documents": [
+        "LOTO Procedure.pdf",
         "Safety Manual.pdf"
-      ],
-      "pages_matched": [
-        1,
-        2
-      ],
-      "evidence_snippets_count": 5,
-      "requirements_satisfied_count": 5,
-      "requirements_total_count": 5,
-      "requirements_status": {
-        "SOP": {
-          "status": "satisfied",
-          "doc_name": "MAINTENANCE PROCEDURE.pdf",
-          "page": 1,
-          "heading": "MAINTENANCE PROCEDURE",
-          "snippet": "MAINTENANCE PROCEDURE Preventive Maintenance SOP 1. Inspect pumps monthly. 2. Inspect compressors every 90 days. 3. Record maintenance logs. 4. Review maintenance records quarterly. Responsible Department: Maintenance Team",
-          "confidence": 0.95
-        },
-        "Schedule": {
-          "status": "satisfied",
-          "doc_name": "MAINTENANCE PROCEDURE.pdf",
-          "page": 1,
-          "heading": "MAINTENANCE PROCEDURE",
-          "snippet": "MAINTENANCE PROCEDURE Preventive Maintenance SOP 1. Inspect pumps monthly. 2. Inspect compressors every 90 days. 3. Record maintenance logs. 4. Review maintenance records quarterly. Responsible Department: Maintenance Team",
-          "confidence": 0.71
-        },
-        "Logs": {
-          "status": "satisfied",
-          "doc_name": "MAINTENANCE PROCEDURE.pdf",
-          "page": 1,
-          "heading": "MAINTENANCE PROCEDURE",
-          "snippet": "MAINTENANCE PROCEDURE Preventive Maintenance SOP 1. Inspect pumps monthly. 2. Inspect compressors every 90 days. 3. Record maintenance logs. 4. Review maintenance records quarterly. Responsible Department: Maintenance Team",
-          "confidence": 0.77
-        },
-        "Responsible Team": {
-          "status": "satisfied",
-          "doc_name": "MAINTENANCE PROCEDURE.pdf",
-          "page": 1,
-          "heading": "MAINTENANCE PROCEDURE",
-          "snippet": "MAINTENANCE PROCEDURE Preventive Maintenance SOP 1. Inspect pumps monthly. 2. Inspect compressors every 90 days. 3. Record maintenance logs. 4. Review maintenance records quarterly. Responsible Department: Maintenance Team",
-          "confidence": 0.8
-        },
-        "Training Record": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 2,
-          "heading": "SECTION 4: TRAINING",
-          "snippet": "All compressors must be inspected every 90 days. Maintenance records must be retained for one year. SECTION 4: TRAINING All employees must receive annual safety training. Training records must be maintained by the HR department. END OF DOCUMENT",
-          "confidence": 0.95
-        }
-      }
+    ],
+    "detected_domains": [
+        "Emergency Response",
+        "Lockout/Tagout (LOTO)",
+        "Personal Protective Equipment",
+        "Training & Competency"
+    ],
+    "not_found_domains": [],
+    "kb_fingerprint": {
+        "fingerprint": "37fbe15cd0f0d57a02db7c06d05cb92a8e0b02eb6cbbb807e6915ef5a26c338a",
+        "doc_ids": [
+            "268c6b64bb7bb28884393bd81e49840f",
+            "fc7491790a4dabc22d8fabbbe3cdfe36"
+        ],
+        "chunk_count": 6,
+        "vector_count": 6,
+        "embedding_model": "chroma:text-embedding-3-small",
+        "doc_count": 2
     },
-    "Quality Management": {
-      "coverage_level": "Fully Covered",
-      "coverage_percentage": 100,
-      "audit_confidence": "High Confidence",
-      "reason_for_decision": "Audit details: matched 4 of 4 subparts. Matched: [Quality policy], [Audit process], [CAPA process], [Inspection records]. ",
-      "documents_matched": [
-        "QUALITY MANAGEMENT PROGRAM.pdf"
-      ],
-      "pages_matched": [
-        1
-      ],
-      "evidence_snippets_count": 4,
-      "requirements_satisfied_count": 4,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Quality policy": {
-          "status": "satisfied",
-          "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf",
-          "page": 1,
-          "heading": "QUALITY MANAGEMENT PROGRAM",
-          "snippet": "QUALITY MANAGEMENT PROGRAM This document defines: - Quality audits - CAPA process - Non-conformance tracking - Quality inspections",
-          "confidence": 0.95
+    "audit_metadata": {
+        "total_chunks_analyzed": 6,
+        "total_documents": 2,
+        "total_requirements": 4,
+        "total_categories": 4,
+        "semantic_threshold": 0.35,
+        "top_k_retrieval": 5,
+        "embedding_model": "chroma:text-embedding-3-small",
+        "score_components": {
+            "doc_coverage": 67,
+            "kg_completeness": 100,
+            "procedure_completeness": 100,
+            "evidence_quality": 67
         },
-        "Audit process": {
-          "status": "satisfied",
-          "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf",
-          "page": 1,
-          "heading": "QUALITY MANAGEMENT PROGRAM",
-          "snippet": "QUALITY MANAGEMENT PROGRAM This document defines: - Quality audits - CAPA process - Non-conformance tracking - Quality inspections",
-          "confidence": 0.77
-        },
-        "CAPA process": {
-          "status": "satisfied",
-          "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf",
-          "page": 1,
-          "heading": "QUALITY MANAGEMENT PROGRAM",
-          "snippet": "QUALITY MANAGEMENT PROGRAM This document defines: - Quality audits - CAPA process - Non-conformance tracking - Quality inspections",
-          "confidence": 0.7
-        },
-        "Inspection records": {
-          "status": "satisfied",
-          "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf",
-          "page": 1,
-          "heading": "QUALITY MANAGEMENT PROGRAM",
-          "snippet": "QUALITY MANAGEMENT PROGRAM This document defines: - Quality audits - CAPA process - Non-conformance tracking - Quality inspections",
-          "confidence": 0.68
-        }
-      }
+        "audit_duration_ms": 2172.0
     },
-    "Permit To Work": {
-      "coverage_level": "Missing",
-      "coverage_percentage": 0,
-      "audit_confidence": "Low Confidence",
-      "reason_for_decision": "Audit details: matched 0 of 4 subparts. Missing: [Permit SOP], [Gas test log], [Confined space permit], [Authorized signatures].",
-      "documents_matched": [],
-      "pages_matched": [],
-      "evidence_snippets_count": 0,
-      "requirements_satisfied_count": 0,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Permit SOP": {
-          "status": "missing"
-        },
-        "Gas test log": {
-          "status": "missing"
-        },
-        "Confined space permit": {
-          "status": "missing"
-        },
-        "Authorized signatures": {
-          "status": "missing"
-        }
-      }
-    },
-    "Risk Assessment": {
-      "coverage_level": "Missing",
-      "coverage_percentage": 0,
-      "audit_confidence": "Low Confidence",
-      "reason_for_decision": "Audit details: matched 0 of 4 subparts. Missing: [Hazard Identification], [Risk Matrix], [Mitigation controls], [Residual risk check].",
-      "documents_matched": [],
-      "pages_matched": [],
-      "evidence_snippets_count": 0,
-      "requirements_satisfied_count": 0,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Hazard Identification": {
-          "status": "missing"
-        },
-        "Risk Matrix": {
-          "status": "missing"
-        },
-        "Mitigation controls": {
-          "status": "missing"
-        },
-        "Residual risk check": {
-          "status": "missing"
-        }
-      }
-    },
-    "Inspection Checklist": {
-      "coverage_level": "Missing",
-      "coverage_percentage": 0,
-      "audit_confidence": "Low Confidence",
-      "reason_for_decision": "Audit details: matched 0 of 4 subparts. Missing: [Checklist template], [Inspection logs], [Defect tracking], [Sign-off approvals].",
-      "documents_matched": [],
-      "pages_matched": [],
-      "evidence_snippets_count": 0,
-      "requirements_satisfied_count": 0,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Checklist template": {
-          "status": "missing"
-        },
-        "Inspection logs": {
-          "status": "missing"
-        },
-        "Defect tracking": {
-          "status": "missing"
-        },
-        "Sign-off approvals": {
-          "status": "missing"
-        }
-      }
-    },
-    "Incident Reporting": {
-      "coverage_level": "Missing",
-      "coverage_percentage": 0,
-      "audit_confidence": "Low Confidence",
-      "reason_for_decision": "Audit details: matched 0 of 4 subparts. Missing: [Accident report form], [Near miss logs], [Root cause analysis], [Corrective actions].",
-      "documents_matched": [],
-      "pages_matched": [],
-      "evidence_snippets_count": 0,
-      "requirements_satisfied_count": 0,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Accident report form": {
-          "status": "missing"
-        },
-        "Near miss logs": {
-          "status": "missing"
-        },
-        "Root cause analysis": {
-          "status": "missing"
-        },
-        "Corrective actions": {
-          "status": "missing"
-        }
-      }
-    },
-    "Emergency Response": {
-      "coverage_level": "Fully Covered",
-      "coverage_percentage": 100,
-      "audit_confidence": "High Confidence",
-      "reason_for_decision": "Audit details: matched 4 of 4 subparts. Matched: [Evacuation route map], [Fire safety protocol], [Muster point details], [Emergency contact logs]. ",
-      "documents_matched": [
-        "Safety Manual.pdf"
-      ],
-      "pages_matched": [
-        1
-      ],
-      "evidence_snippets_count": 4,
-      "requirements_satisfied_count": 4,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "Evacuation route map": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.76
-        },
-        "Fire safety protocol": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.67
-        },
-        "Muster point details": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.76
-        },
-        "Emergency contact logs": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.8
-        }
-      }
-    },
-    "PPE": {
-      "coverage_level": "Fully Covered",
-      "coverage_percentage": 100,
-      "audit_confidence": "High Confidence",
-      "reason_for_decision": "Audit details: matched 4 of 4 subparts. Matched: [PPE assignment list], [Safety harness checklist], [Protective gear specs], [PPE inspections]. ",
-      "documents_matched": [
-        "Safety Manual.pdf"
-      ],
-      "pages_matched": [
-        1
-      ],
-      "evidence_snippets_count": 4,
-      "requirements_satisfied_count": 4,
-      "requirements_total_count": 4,
-      "requirements_status": {
-        "PPE assignment list": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.76
-        },
-        "Safety harness checklist": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.76
-        },
-        "Protective gear specs": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.76
-        },
-        "PPE inspections": {
-          "status": "satisfied",
-          "doc_name": "Safety Manual.pdf",
-          "page": 1,
-          "heading": "ABC MANUFACTURING PLANT SAFETY MANUAL",
-          "snippet": "ABC MANUFACTURING PLANT SAFETY MANUAL Version: 1.0 Date: June 2026 SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear: - Safety Helmet - Safety Shoes - Safety Glasses - Protective Gloves Visitors entering production areas must wea...",
-          "confidence": 0.7
-        }
-      }
-    }
-  },
-  "gaps_summary": {
-    "missing_procedures": 4,
-    "missing_inspections": 1,
-    "missing_certifications": 0,
-    "missing_safety_records": 1
-  },
-  "category_summary": {
-    "Safety": 1,
-    "Maintenance": 1,
-    "Inspection": 0,
-    "Operations": 0,
-    "Quality": 0,
-    "Regulatory": 2
-  },
-  "historical_scores": [
-    {
-      "date": "2026-06-25",
-      "score": 90
-    },
-    {
-      "date": "2026-06-26",
-      "score": 90
-    },
-    {
-      "date": "2026-06-27",
-      "score": 92
-    },
-    {
-      "date": "2026-06-28",
-      "score": 70
-    }
-  ],
-  "last_updated": "2026-06-28T18:35:11.567708"
+    "last_updated": "2026-06-30T09:02:49.547891+00:00"
 }
