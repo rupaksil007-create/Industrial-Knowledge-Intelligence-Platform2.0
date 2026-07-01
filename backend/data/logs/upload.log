@@ -140,3 +140,20 @@
 {"event": "upload_parsed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_pages": 1, "method": "standard", "ts": "2026-06-30T09:02:29.393110+00:00"}
 {"event": "upload_chunked", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "total_chunks": 1, "ts": "2026-06-30T09:02:30.264343+00:00"}
 {"event": "upload_indexed", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "filename": "LOTO Procedure.pdf", "vector_count": 1, "status": "READY", "ts": "2026-06-30T09:02:30.266026+00:00"}
+{"event": "upload_started", "doc_id": "c318ca037152b2d4732463bc6cee1c03", "filename": "MAINTENANCE PROCEDURE.pdf", "size_bytes": 0, "ts": "2026-07-01T08:58:55.578395+00:00"}
+{"event": "upload_parsed", "doc_id": "c318ca037152b2d4732463bc6cee1c03", "filename": "MAINTENANCE PROCEDURE.pdf", "total_pages": 1, "method": "standard", "ts": "2026-07-01T08:58:55.627807+00:00"}
+{"event": "upload_chunked", "doc_id": "c318ca037152b2d4732463bc6cee1c03", "filename": "MAINTENANCE PROCEDURE.pdf", "total_chunks": 1, "ts": "2026-07-01T08:58:56.425615+00:00"}
+{"event": "upload_indexed", "doc_id": "c318ca037152b2d4732463bc6cee1c03", "filename": "MAINTENANCE PROCEDURE.pdf", "vector_count": 1, "status": "READY", "ts": "2026-07-01T08:58:56.426622+00:00"}
+{"event": "upload_started", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "size_bytes": 0, "ts": "2026-07-01T08:59:02.959456+00:00"}
+{"event": "upload_parsed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_pages": 1, "method": "standard", "ts": "2026-07-01T08:59:02.986504+00:00"}
+{"event": "upload_chunked", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "total_chunks": 1, "ts": "2026-07-01T08:59:03.753743+00:00"}
+{"event": "upload_indexed", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "filename": "QUALITY MANAGEMENT PROGRAM.pdf", "vector_count": 1, "status": "READY", "ts": "2026-07-01T08:59:03.756325+00:00"}
+{"event": "upload_deleted", "doc_id": "fc7491790a4dabc22d8fabbbe3cdfe36", "doc_name": "Safety Manual.pdf", "ts": "2026-07-01T09:02:45.983672+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-07-01T09:02:47.914376+00:00"}
+{"event": "upload_deleted", "doc_id": "c318ca037152b2d4732463bc6cee1c03", "doc_name": "MAINTENANCE PROCEDURE.pdf", "ts": "2026-07-01T09:02:49.875613+00:00"}
+{"event": "upload_deleted", "doc_id": "3bbdb9918243360855cf22c3305f49c6", "doc_name": "QUALITY MANAGEMENT PROGRAM.pdf", "ts": "2026-07-01T09:02:51.797030+00:00"}
+{"event": "upload_deleted", "doc_id": "268c6b64bb7bb28884393bd81e49840f", "doc_name": "LOTO Procedure.pdf", "ts": "2026-07-01T16:41:22.269956+00:00"}
+{"event": "upload_started", "doc_id": "9b154b5d72f987bdd61886cb8a5ca7a6", "filename": "Arrays_C.pdf", "size_bytes": 0, "ts": "2026-07-01T16:43:53.307710+00:00"}
+{"event": "upload_parsed", "doc_id": "9b154b5d72f987bdd61886cb8a5ca7a6", "filename": "Arrays_C.pdf", "total_pages": 13, "method": "standard", "ts": "2026-07-01T16:43:53.610103+00:00"}
+{"event": "upload_chunked", "doc_id": "9b154b5d72f987bdd61886cb8a5ca7a6", "filename": "Arrays_C.pdf", "total_chunks": 14, "ts": "2026-07-01T16:44:07.184582+00:00"}
+{"event": "upload_indexed", "doc_id": "9b154b5d72f987bdd61886cb8a5ca7a6", "filename": "Arrays_C.pdf", "vector_count": 14, "status": "READY", "ts": "2026-07-01T16:44:07.187135+00:00"}
