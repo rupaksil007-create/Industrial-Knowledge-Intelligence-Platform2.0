@@ -1,8 +1,8 @@
 {
-    "score": 83,
+    "score": 80,
     "risk_level": "GOOD",
     "audit_status": "ACTIVE",
-    "total_gaps": 4,
+    "total_gaps": 3,
     "gaps": [
         {
             "id": "gap_improve_emergency_response_emergency_response_in_case_of_re",
@@ -23,27 +23,6 @@
                 "EMERGENCY RESPONSE In case of ﬁre"
             ],
             "recommended_remediation": "Establish formal version control, effective dates, and a revision log. Define specific verification frequencies or task review intervals. Document operators' training curriculum and practical competency validation rules.",
-            "nodes_involved": []
-        },
-        {
-            "id": "gap_improve_lockout_tagout_loto_lockout_tagout_procedure_document_id_loto_001",
-            "severity": "Low",
-            "category": "Lockout/Tagout (LOTO)",
-            "gap": "Documentation Improvement: LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001",
-            "status": "Opportunity for Improvement",
-            "source_document": "LOTO Procedure.pdf",
-            "page": 1,
-            "paragraph": "",
-            "document_id": "268c6b64bb7bb28884393bd81e49840f",
-            "evidence": "[Section: LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001]\nPurpose: To ensure equipment is safely isolated before maintenance ac ƟviƟes. Procedure: 1. NoƟfy aﬀected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply warning tags. 6. Verify isola Ɵon. 7. Perform maintenance. 8. Remove locks and restore opera Ɵon. Responsibility: Maintenance Department Revision: 1.0",
-            "explanation": "Retrieved operational text covers 'LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001' but contains weak documentation details: missing inspection frequency or review intervals.",
-            "confidence_score": 0.83,
-            "semantic_similarity": 0.7688043117523193,
-            "keyword_score": 0.0,
-            "requirements": [
-                "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001"
-            ],
-            "recommended_remediation": "Define specific verification frequencies or task review intervals.",
             "nodes_involved": []
         },
         {
@@ -91,7 +70,6 @@
     ],
     "coverage_matrix": {
         "Emergency Response": 67,
-        "Lockout/Tagout (LOTO)": 83,
         "Personal Protective Equipment": 59,
         "Training & Competency": 59
     },
@@ -123,36 +101,6 @@
                     "confidence": 0.67,
                     "matched_query": "emergency response case ﬁre",
                     "semantic_similarity": 0.7203496694564819
-                }
-            }
-        },
-        "Lockout/Tagout (LOTO)": {
-            "category": "Lockout/Tagout (LOTO)",
-            "coverage_level": "Partially Covered",
-            "coverage_percentage": 83,
-            "audit_confidence": "Medium Confidence",
-            "average_confidence": 0.83,
-            "reason_for_decision": "Matched 1/1 requirements. Satisfied: [LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001].",
-            "documents_matched": [
-                "LOTO Procedure.pdf"
-            ],
-            "pages_matched": [
-                1
-            ],
-            "evidence_snippets_count": 1,
-            "requirements_satisfied_count": 1,
-            "requirements_total_count": 1,
-            "requirements_status": {
-                "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001": {
-                    "status": "satisfied",
-                    "doc_id": "268c6b64bb7bb28884393bd81e49840f",
-                    "doc_name": "LOTO Procedure.pdf",
-                    "page": 1,
-                    "heading": "LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001",
-                    "snippet": "[Section: LOCKOUT TAGOUT PROCEDURE Document ID: LOTO-001]\nPurpose: To ensure equipment is safely isolated before maintenance ac ƟviƟes. Procedure: 1. NoƟfy aﬀected personnel. 2. Shut down equipment. 3. Isolate energy sources. 4. Apply lock devices. 5. Apply warning tags. 6. Verify isola Ɵon. 7. Perform maintenance. 8. Remove locks and restore opera Ɵon. Responsibility: Maintenance Department Revision: 1.0",
-                    "confidence": 0.83,
-                    "matched_query": "lockout tagout loto procedure document 001",
-                    "semantic_similarity": 0.7688043117523193
                 }
             }
         },
@@ -218,13 +166,13 @@
         }
     },
     "gaps_summary": {
-        "missing_procedures": 4,
+        "missing_procedures": 3,
         "missing_inspections": 0,
         "missing_certifications": 1,
-        "missing_safety_records": 2
+        "missing_safety_records": 1
     },
     "category_summary": {
-        "Safety": 2,
+        "Safety": 1,
         "Maintenance": 0,
         "Inspection": 0,
         "Operations": 0,
@@ -233,47 +181,44 @@
     },
     "historical_scores": [
         {
-            "date": "2026-06-30",
-            "score": 83
+            "date": "2026-07-01",
+            "score": 80
         }
     ],
     "uploaded_documents": [
-        "LOTO Procedure.pdf",
         "Safety Manual.pdf"
     ],
     "detected_domains": [
         "Emergency Response",
-        "Lockout/Tagout (LOTO)",
         "Personal Protective Equipment",
         "Training & Competency"
     ],
     "not_found_domains": [],
     "kb_fingerprint": {
-        "fingerprint": "37fbe15cd0f0d57a02db7c06d05cb92a8e0b02eb6cbbb807e6915ef5a26c338a",
+        "fingerprint": "86d037c4688096f1729603a2522ef83ba1ac1f851cda7ddd601e7a344de2f605",
         "doc_ids": [
-            "268c6b64bb7bb28884393bd81e49840f",
             "fc7491790a4dabc22d8fabbbe3cdfe36"
         ],
-        "chunk_count": 6,
-        "vector_count": 6,
+        "chunk_count": 5,
+        "vector_count": 5,
         "embedding_model": "chroma:text-embedding-3-small",
-        "doc_count": 2
+        "doc_count": 1
     },
     "audit_metadata": {
-        "total_chunks_analyzed": 6,
-        "total_documents": 2,
-        "total_requirements": 4,
-        "total_categories": 4,
+        "total_chunks_analyzed": 5,
+        "total_documents": 1,
+        "total_requirements": 3,
+        "total_categories": 3,
         "semantic_threshold": 0.35,
         "top_k_retrieval": 5,
         "embedding_model": "chroma:text-embedding-3-small",
         "score_components": {
-            "doc_coverage": 67,
+            "doc_coverage": 61,
             "kg_completeness": 100,
             "procedure_completeness": 100,
-            "evidence_quality": 67
+            "evidence_quality": 61
         },
-        "audit_duration_ms": 2172.0
+        "audit_duration_ms": 24094.0
     },
-    "last_updated": "2026-06-30T09:02:49.547891+00:00"
+    "last_updated": "2026-07-01T16:41:52.287017+00:00"
 }

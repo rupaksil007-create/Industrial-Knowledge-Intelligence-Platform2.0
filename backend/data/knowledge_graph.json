@@ -11,32 +11,12 @@
       "type": "Departments",
       "source_document": "Safety Manual.pdf",
       "page_number": 2
-    },
-    "loto": {
-      "name": "LOTO",
-      "type": "Procedures",
-      "source_document": "LOTO Procedure.pdf",
-      "page_number": 1
-    },
-    "maintenance department": {
-      "name": "Maintenance Department",
-      "type": "Departments",
-      "source_document": "LOTO Procedure.pdf",
-      "page_number": 1
     }
   },
-  "edges": [
-    {
-      "source": "LOTO",
-      "target": "MAINTENANCE",
-      "type": "MAINTAINED_BY",
-      "source_document": "LOTO Procedure.pdf",
-      "page_number": 1
-    }
-  ],
+  "edges": [],
   "metadata": {
-    "node_count": 4,
-    "edge_count": 1,
-    "last_updated": "2026-06-30T14:32:30.259851"
+    "node_count": 2,
+    "edge_count": 0,
+    "last_updated": "2026-07-01T22:14:07.149343"
   }
 }
