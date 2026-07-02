@@ -37,6 +37,7 @@ interface Citation {
   doc_id: string;
   page: number;
   text_snippet: string;
+  text?: string;
   score: number | null;
   explanation?: string;
 }
@@ -77,7 +78,7 @@ export default function Dashboard() {
 
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
-      if (tabParam && ["dashboard", "library", "chat", "graph", "compliance"].includes(tabParam)) {
+      if (tabParam && ["dashboard", "library", "chat", "graph", "compliance", "copilot"].includes(tabParam)) {
         setActiveTab(tabParam as any);
       }
     }
@@ -91,7 +92,7 @@ export default function Dashboard() {
     window.location.href = "/login";
   };
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "library" | "chat" | "graph" | "compliance">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "library" | "chat" | "graph" | "compliance" | "copilot">("dashboard");
   
   // Compliance Intelligence States
   const [complianceData, setComplianceData] = useState<any>(null);
@@ -218,6 +219,20 @@ export default function Dashboard() {
   const [userInput, setUserInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [activeCitations, setActiveCitations] = useState<Citation[]>([]);
+
+  // Expert Knowledge Copilot States
+  const [copilotMessages, setCopilotMessages] = useState<Message[]>([
+    {
+      id: "init",
+      role: "assistant",
+      content: "System Initialized. I am the Expert Knowledge Copilot. I help you understand, analyze, and act on industrial knowledge using the uploaded documents. Select a suggested prompt or ask any question to begin.",
+      timestamp: new Date().toLocaleTimeString(),
+    }
+  ]);
+  const [copilotInput, setCopilotInput] = useState("");
+  const [copilotLoading, setCopilotLoading] = useState(false);
+  const [copilotActiveCitations, setCopilotActiveCitations] = useState<Citation[]>([]);
+  const copilotChatEndRef = useRef<HTMLDivElement>(null);
   
   // Search Metadata Filter States
   const [showFilters, setShowFilters] = useState(false);
@@ -711,6 +726,11 @@ export default function Dashboard() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatLoading]);
 
+  // Auto scroll copilot chat
+  useEffect(() => {
+    copilotChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [copilotMessages, copilotLoading]);
+
   // Check Backend Health using compatible AbortController timeout
   const checkHealth = async () => {
     const healthUrl = `${API_URL}/health`;
@@ -1010,6 +1030,146 @@ export default function Dashboard() {
     }
   };
 
+  // Expert Knowledge Copilot Handlers
+  const formatMessageContent = (content: string) => {
+    if (!content) return "";
+    return content.split("\n").map((line, idx) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("# ")) {
+        return (
+          <h3 key={idx} className="text-xs font-mono font-semibold uppercase tracking-wider text-cyan-400 mt-4 mb-2 border-b border-zinc-800/80 pb-1">
+            {trimmed.replace("# ", "")}
+          </h3>
+        );
+      }
+      if (trimmed.startsWith("## ")) {
+        return (
+          <h4 key={idx} className="text-xs font-mono font-semibold text-zinc-200 mt-3 mb-1">
+            {trimmed.replace("## ", "")}
+          </h4>
+        );
+      }
+      if (trimmed.startsWith("### ")) {
+        return (
+          <h5 key={idx} className="text-xs font-semibold text-zinc-300 mt-2.5 mb-1 underline decoration-zinc-850">
+            {trimmed.replace("### ", "")}
+          </h5>
+        );
+      }
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+        return (
+          <li key={idx} className="ml-4 list-disc text-zinc-300 my-0.5 text-xs leading-relaxed">
+            {trimmed.substring(2)}
+          </li>
+        );
+      }
+      return <p key={idx} className="my-1 text-zinc-350 text-xs leading-relaxed">{line}</p>;
+    });
+  };
+
+  const handleCopilotQuery = async (queryText: string) => {
+    const trimmed = queryText.trim();
+    if (!trimmed) return;
+    
+    setCopilotInput("");
+    setCopilotLoading(true);
+    
+    const userMsgId = Date.now().toString();
+    const newUserMsg: Message = {
+      id: userMsgId,
+      role: "user",
+      content: trimmed,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    
+    const updatedMessages = [...copilotMessages, newUserMsg];
+    setCopilotMessages(updatedMessages);
+    
+    try {
+      const messagesPayload = updatedMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      const payload: any = {
+        messages: messagesPayload
+      };
+      if (filterDocName) {
+        payload.document_name = filterDocName;
+      }
+      if (filterDocType) {
+        payload.document_type = filterDocType;
+      }
+      if (filterUploadDate) {
+        payload.upload_date = filterUploadDate;
+      }
+
+      const res = await fetch(`${API_URL}/copilot/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        const assistantMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: data.answer,
+          citations: data.citations,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        setCopilotMessages((prev) => [...prev, assistantMsg]);
+        if (data.citations && data.citations.length > 0) {
+          setCopilotActiveCitations(data.citations);
+        }
+      } else {
+        let errorMsg = "System encountered an error processing your query. Please confirm the vector database connection.";
+        try {
+          const errData = await res.json();
+          if (errData && errData.detail) {
+            if (typeof errData.detail === "string") {
+              errorMsg = errData.detail;
+            } else if (Array.isArray(errData.detail)) {
+              errorMsg = errData.detail.map((e: any) => e.msg || JSON.stringify(e)).join("; ");
+            } else {
+              errorMsg = JSON.stringify(errData.detail);
+            }
+          }
+        } catch (jsonErr) {}
+        const assistantMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `Error: ${errorMsg}`,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        setCopilotMessages((prev) => [...prev, assistantMsg]);
+      }
+    } catch (e) {
+      const assistantMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Network error: Copilot API server is offline.",
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setCopilotMessages((prev) => [...prev, assistantMsg]);
+    } finally {
+      setCopilotLoading(false);
+    }
+  };
+
+  const handleClearCopilotChat = () => {
+    setCopilotMessages([
+      {
+        id: "init",
+        role: "assistant",
+        content: "System Initialized. I am the Expert Knowledge Copilot. I help you understand, analyze, and act on industrial knowledge using the uploaded documents. Select a suggested prompt or ask any question to begin.",
+        timestamp: new Date().toLocaleTimeString(),
+      }
+    ]);
+    setCopilotActiveCitations([]);
+  };
+
   // Quick Prompts
   const quickPrompts = [
     "What is Problem Statement 8 about?",
@@ -1120,6 +1280,18 @@ export default function Dashboard() {
               >
                 <MessageSquare className="h-4.5 w-4.5" />
                 <span>Intelligence Chat</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("copilot")}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded transition-all duration-200 text-sm font-medium ${
+                  activeTab === "copilot"
+                    ? "bg-cyan-950/40 text-cyan-400 border-l-2 border-cyan-500 font-semibold"
+                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                }`}
+              >
+                <Cpu className="h-4.5 w-4.5 text-cyan-400" />
+                <span>Expert Copilot</span>
               </button>
 
               <button
@@ -2589,6 +2761,263 @@ export default function Dashboard() {
                         </blockquote>
 
                         {/* Expandable Explanation Tooltip for debug scores */}
+                        {citation.explanation && (
+                          <div className="mt-2 pt-2 border-t border-zinc-800/60 text-[9px] text-zinc-500 leading-normal font-mono group-hover:text-zinc-400 transition">
+                            {citation.explanation}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB CONTENT: EXPERT COPILOT */}
+          {activeTab === "copilot" && (
+            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)] overflow-hidden">
+              
+              {/* Copilot Chat Box */}
+              <div className="flex-1 flex flex-col glass-panel rounded-lg border border-zinc-800 overflow-hidden bg-zinc-950/20">
+                {/* Copilot Header */}
+                <div className="px-4 py-3 bg-[#121214] border-b border-zinc-800 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Cpu className="h-4.5 w-4.5 text-cyan-400 animate-pulse" />
+                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-200">Expert Knowledge Copilot</span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    {copilotLoading && (
+                      <div className="flex items-center space-x-1.5 text-[10px] text-cyan-400 font-mono uppercase animate-pulse">
+                        <span className="h-1.5 w-1.5 bg-cyan-400 rounded-full animate-bounce" />
+                        <span>Copilot Reasoning...</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleClearCopilotChat}
+                      className="px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider bg-zinc-900 hover:bg-rose-950/40 hover:text-rose-400 text-zinc-400 border border-zinc-800 hover:border-rose-900/50 rounded transition duration-200"
+                    >
+                      Clear Chat
+                    </button>
+                  </div>
+                </div>
+
+                {/* Messages log */}
+                <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                  {copilotMessages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`flex gap-3 max-w-[85%] ${msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+                    >
+                      {/* Avatar */}
+                      <div className={`h-8 w-8 rounded flex items-center justify-center shrink-0 border text-xs font-mono font-bold ${
+                        msg.role === "user" 
+                          ? "bg-zinc-800 border-zinc-700 text-zinc-300"
+                          : "bg-cyan-950/50 border-cyan-500/40 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.15)]"
+                      }`}>
+                        {msg.role === "user" ? <User className="h-4.5 w-4.5" /> : <Cpu className="h-4.5 w-4.5" />}
+                      </div>
+
+                      {/* Content Bubble */}
+                      <div className="space-y-1">
+                        <div className={`p-4 rounded border text-sm leading-relaxed ${
+                          msg.role === "user"
+                            ? "bg-cyan-950/20 text-zinc-200 border-cyan-800/40 rounded-tr-none"
+                            : "bg-[#121214]/90 text-zinc-300 border-zinc-800/60 rounded-tl-none shadow-sm"
+                        }`}>
+                          {msg.role === "user" ? (
+                            <div className="whitespace-pre-wrap text-zinc-200">{msg.content}</div>
+                          ) : (
+                            <div className="space-y-1">{formatMessageContent(msg.content)}</div>
+                          )}
+                        </div>
+                        
+                        {/* Show message metadata / timestamp */}
+                        <div className={`text-[10px] font-mono text-zinc-500 px-1 flex items-center justify-between gap-4 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+                          <span>{msg.timestamp}</span>
+                          {msg.citations && msg.citations.length > 0 && (
+                            <button
+                              onClick={() => setCopilotActiveCitations(msg.citations || [])}
+                              className="text-cyan-400 hover:underline font-semibold hover:text-cyan-300 transition"
+                            >
+                              [View {msg.citations.length} Supporting Citations]
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {copilotLoading && (
+                    <div className="flex gap-3 max-w-[85%] mr-auto">
+                      <div className="h-8 w-8 rounded flex items-center justify-center shrink-0 border bg-cyan-950/50 border-cyan-500/40 text-cyan-400">
+                        <Cpu className="h-4.5 w-4.5 animate-spin" />
+                      </div>
+                      <div className="p-4 bg-[#121214] border border-zinc-800/60 rounded-lg rounded-tl-none space-y-3 w-64 animate-pulse">
+                        <div className="h-2.5 bg-zinc-800 rounded w-full" />
+                        <div className="h-2.5 bg-zinc-800 rounded w-5/6" />
+                        <div className="h-2.5 bg-zinc-800 rounded w-2/3" />
+                      </div>
+                    </div>
+                  )}
+                  <div ref={copilotChatEndRef} />
+                </div>
+
+                {/* Suggested Prompts Panel */}
+                {copilotMessages.length <= 1 && (
+                  <div className="p-4 border-t border-zinc-900 bg-zinc-950/40">
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-2.5">Suggested Prompts & Industrial Scenarios</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        { label: "Explain Lockout Tagout", query: "Explain Lockout Tagout" },
+                        { label: "Summarize Uploaded Manuals", query: "Summarize uploaded manuals" },
+                        { label: "Compare Safety Manual and LOTO", query: "Compare Safety Manual and LOTO Procedure" },
+                        { label: "Show Maintenance Responsibilities", query: "Show maintenance responsibilities" },
+                        { label: "What are the emergency procedures?", query: "What are the emergency procedures?" },
+                        { label: "What should a new technician know?", query: "What should a new technician know?" },
+                        { label: "What documents discuss compressors?", query: "What documents discuss compressors?" },
+                        { label: "What risks exist before maintenance?", query: "What risks exist before maintenance?" }
+                      ].map((prompt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleCopilotQuery(prompt.query)}
+                          className="text-left px-3 py-2 bg-zinc-900/60 hover:bg-cyan-950/10 text-zinc-300 hover:text-cyan-400 border border-zinc-800/80 hover:border-cyan-800/40 rounded text-xs font-medium transition duration-200 ease-in-out shadow-sm"
+                        >
+                          {prompt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Input panel */}
+                <div className="p-3 bg-[#121214] border-t border-zinc-800 space-y-3">
+                  
+                  {/* Collapsible Search Filters */}
+                  <div className="border-b border-zinc-800/80 pb-2">
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="text-[10px] font-mono text-zinc-500 hover:text-cyan-400 flex items-center space-x-1 transition"
+                    >
+                      <span>{showFilters ? "[-] Hide Search Filters" : "[+] Show Search Filters"}</span>
+                      {(filterDocName || filterDocType || filterUploadDate) && (
+                        <span className="text-cyan-400 font-bold bg-cyan-950/40 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider ml-2 border border-cyan-800/30">Active Filters</span>
+                      )}
+                    </button>
+                    
+                    {showFilters && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 p-2 bg-zinc-950/80 rounded border border-zinc-900 font-mono text-[11px]">
+                        <div>
+                          <label className="block text-zinc-500 mb-1">Document Name</label>
+                          <select
+                            value={filterDocName}
+                            onChange={(e) => setFilterDocName(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded px-2 py-1 focus:outline-none focus:border-cyan-500 text-[10px]"
+                          >
+                            <option value="">All Documents</option>
+                            {documents.map((doc) => (
+                              <option key={doc.id} value={doc.name}>{doc.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-zinc-500 mb-1">Doc Type</label>
+                          <select
+                            value={filterDocType}
+                            onChange={(e) => setFilterDocType(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded px-2 py-1 focus:outline-none focus:border-cyan-500 text-[10px]"
+                          >
+                            <option value="">All Types</option>
+                            <option value="pdf">PDF</option>
+                            <option value="txt">TXT</option>
+                            <option value="doc">DOC</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-zinc-500 mb-1">Upload Date</label>
+                          <input
+                            type="date"
+                            value={filterUploadDate}
+                            onChange={(e) => setFilterUploadDate(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded px-2 py-1 focus:outline-none focus:border-cyan-500 text-[10px]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleCopilotQuery(copilotInput);
+                    }}
+                    className="flex items-center space-x-2"
+                  >
+                    <input
+                      type="text"
+                      value={copilotInput}
+                      onChange={(e) => setCopilotInput(e.target.value)}
+                      placeholder="Ask the Copilot to explain LOTO, summarize, compare, or identify risks..."
+                      disabled={copilotLoading}
+                      className="flex-1 bg-zinc-950 border border-zinc-800 text-zinc-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 disabled:opacity-60 font-sans"
+                    />
+                    <button
+                      type="submit"
+                      disabled={copilotLoading || !copilotInput.trim()}
+                      className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm px-4 py-2 rounded transition disabled:opacity-50"
+                    >
+                      Analyze
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Citations Panel */}
+              <div className="w-full lg:w-80 flex flex-col glass-panel rounded-lg border border-zinc-800 overflow-hidden h-full bg-[#0a0a0c]/60">
+                <div className="px-4 py-3 bg-[#121214] border-b border-zinc-800 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Database className="h-4 w-4 text-cyan-400" />
+                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-200">Grounded Citations</span>
+                  </div>
+                  {copilotActiveCitations.length > 0 && (
+                    <span className="bg-cyan-950/60 text-cyan-400 border border-cyan-800/40 px-2 py-0.5 rounded text-[10px] font-mono">
+                      {copilotActiveCitations.length} Source{copilotActiveCitations.length > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-zinc-950/10">
+                  {copilotActiveCitations.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center text-zinc-600 font-mono text-xs space-y-2">
+                      <Database className="h-8 w-8 text-zinc-800" />
+                      <p>Ask a question or select citations in messages to inspect retrieved passages.</p>
+                    </div>
+                  ) : (
+                    copilotActiveCitations.map((citation, idx) => (
+                      <div 
+                        key={idx} 
+                        className="bg-zinc-950 p-3 rounded border border-zinc-800/80 space-y-2 font-mono text-[11px] relative overflow-hidden group hover:border-cyan-500/30 transition shadow-sm"
+                      >
+                        {/* Normalized percentage display score */}
+                        <div className="absolute right-0 top-0 bg-cyan-950/60 text-cyan-400 border-l border-b border-cyan-800/40 px-1.5 py-0.5 text-[9px] rounded-bl">
+                          {citation.score ? `${(citation.score * 100).toFixed(0)}% Match` : `Reference`}
+                        </div>
+                        
+                        <div className="flex items-center space-x-1.5 text-white font-sans font-bold text-xs truncate max-w-[80%]">
+                          <FileText className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
+                          <span className="truncate" title={citation.doc_name}>{citation.doc_name}</span>
+                        </div>
+                        
+                        <div className="text-[10px] text-cyan-500 font-semibold uppercase">
+                          Page {citation.page}
+                        </div>
+                        
+                        <blockquote className="border-l border-zinc-700 pl-2 text-zinc-400 italic mt-2 whitespace-pre-wrap break-words leading-relaxed font-sans text-xs">
+                          "...{citation.text_snippet || citation.text}..."
+                        </blockquote>
+
                         {citation.explanation && (
                           <div className="mt-2 pt-2 border-t border-zinc-800/60 text-[9px] text-zinc-500 leading-normal font-mono group-hover:text-zinc-400 transition">
                             {citation.explanation}

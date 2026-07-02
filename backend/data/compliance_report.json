@@ -1,5 +1,5 @@
 {
-    "score": 80,
+    "score": 79,
     "risk_level": "GOOD",
     "audit_status": "ACTIVE",
     "total_gaps": 3,
@@ -16,7 +16,7 @@
             "document_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
             "evidence": "[Section: SECTION 2: EMERGENCY RESPONSE In case of ﬁre:]\n1. AcƟvate the nearest ﬁre alarm. 2. Evacuate through the nearest emergency exit. 3. Report to the designated assembly point. 4. Wait for further instruc Ɵons from emergency personnel. Emergency Coordinator: Rajesh Kumar",
             "explanation": "Retrieved operational text covers 'EMERGENCY RESPONSE In case of ﬁre' but contains weak documentation details: unclear revision history or document control, missing inspection frequency or review intervals, insufficient training or competency evidence guidelines.",
-            "confidence_score": 0.67,
+            "confidence_score": 0.64,
             "semantic_similarity": 0.7203496694564819,
             "keyword_score": 0.0,
             "requirements": [
@@ -37,7 +37,7 @@
             "document_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
             "evidence": "[Section: SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear:]\n- Safety Helmet - Safety Shoes - Safety Glasses - ProtecƟve Gloves Visitors entering produc Ɵon areas must wear helmets and safety glasses.",
             "explanation": "Retrieved operational text covers 'PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear' but contains weak documentation details: unclear revision history or document control, unclear responsibilities or role assignment, missing inspection frequency or review intervals, insufficient training or competency evidence guidelines.",
-            "confidence_score": 0.59,
+            "confidence_score": 0.55,
             "semantic_similarity": 0.7183607816696167,
             "keyword_score": 0.0,
             "requirements": [
@@ -58,7 +58,7 @@
             "document_id": "fc7491790a4dabc22d8fabbbe3cdfe36",
             "evidence": "[Section: SECTION 4: TRAINING All employees must receive annual safety training.]\nTraining records must be maintained by the HR department.",
             "explanation": "Retrieved operational text covers 'TRAINING All employees must receive annual safety training.' but contains weak documentation details: unclear revision history or document control, unclear responsibilities or role assignment, missing inspection frequency or review intervals, vague emergency instructions or verification protocols.",
-            "confidence_score": 0.59,
+            "confidence_score": 0.56,
             "semantic_similarity": 0.7587795853614807,
             "keyword_score": 0.0,
             "requirements": [
@@ -69,17 +69,17 @@
         }
     ],
     "coverage_matrix": {
-        "Emergency Response": 67,
-        "Personal Protective Equipment": 59,
-        "Training & Competency": 59
+        "Emergency Response": 64,
+        "Personal Protective Equipment": 55,
+        "Training & Competency": 56
     },
     "coverage_details": {
         "Emergency Response": {
             "category": "Emergency Response",
             "coverage_level": "Partially Covered",
-            "coverage_percentage": 67,
+            "coverage_percentage": 64,
             "audit_confidence": "Medium Confidence",
-            "average_confidence": 0.67,
+            "average_confidence": 0.64,
             "reason_for_decision": "Matched 1/1 requirements. Satisfied: [EMERGENCY RESPONSE In case of ﬁre].",
             "documents_matched": [
                 "Safety Manual.pdf"
@@ -98,7 +98,7 @@
                     "page": 1,
                     "heading": "SECTION 2: EMERGENCY RESPONSE In case of ﬁre:",
                     "snippet": "[Section: SECTION 2: EMERGENCY RESPONSE In case of ﬁre:]\n1. AcƟvate the nearest ﬁre alarm. 2. Evacuate through the nearest emergency exit. 3. Report to the designated assembly point. 4. Wait for further instruc Ɵons from emergency personnel. Emergency Coordinator: Rajesh Kumar",
-                    "confidence": 0.67,
+                    "confidence": 0.64,
                     "matched_query": "emergency response case ﬁre",
                     "semantic_similarity": 0.7203496694564819
                 }
@@ -107,9 +107,9 @@
         "Personal Protective Equipment": {
             "category": "Personal Protective Equipment",
             "coverage_level": "Partially Covered",
-            "coverage_percentage": 59,
+            "coverage_percentage": 55,
             "audit_confidence": "Medium Confidence",
-            "average_confidence": 0.59,
+            "average_confidence": 0.55,
             "reason_for_decision": "Matched 1/1 requirements. Satisfied: [PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear].",
             "documents_matched": [
                 "Safety Manual.pdf"
@@ -128,7 +128,7 @@
                     "page": 1,
                     "heading": "SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear:",
                     "snippet": "[Section: SECTION 1: PERSONAL PROTECTIVE EQUIPMENT (PPE) All employees must wear:]\n- Safety Helmet - Safety Shoes - Safety Glasses - ProtecƟve Gloves Visitors entering produc Ɵon areas must wear helmets and safety glasses.",
-                    "confidence": 0.59,
+                    "confidence": 0.55,
                     "matched_query": "personal protective equipment ppe all employees must wear",
                     "semantic_similarity": 0.7183607816696167
                 }
@@ -137,9 +137,9 @@
         "Training & Competency": {
             "category": "Training & Competency",
             "coverage_level": "Partially Covered",
-            "coverage_percentage": 59,
+            "coverage_percentage": 56,
             "audit_confidence": "Medium Confidence",
-            "average_confidence": 0.59,
+            "average_confidence": 0.56,
             "reason_for_decision": "Matched 1/1 requirements. Satisfied: [TRAINING All employees must receive annual safety training.].",
             "documents_matched": [
                 "Safety Manual.pdf"
@@ -158,7 +158,7 @@
                     "page": 2,
                     "heading": "SECTION 4: TRAINING All employees must receive annual safety training.",
                     "snippet": "[Section: SECTION 4: TRAINING All employees must receive annual safety training.]\nTraining records must be maintained by the HR department.",
-                    "confidence": 0.59,
+                    "confidence": 0.56,
                     "matched_query": "training competency all employees must receive annual safety",
                     "semantic_similarity": 0.7587795853614807
                 }
@@ -181,11 +181,12 @@
     },
     "historical_scores": [
         {
-            "date": "2026-07-01",
-            "score": 80
+            "date": "2026-07-02",
+            "score": 79
         }
     ],
     "uploaded_documents": [
+        "Arrays_C.pdf",
         "Safety Manual.pdf"
     ],
     "detected_domains": [
@@ -195,30 +196,31 @@
     ],
     "not_found_domains": [],
     "kb_fingerprint": {
-        "fingerprint": "86d037c4688096f1729603a2522ef83ba1ac1f851cda7ddd601e7a344de2f605",
+        "fingerprint": "6ee994fb6f8ef5c70824f78d5b1881a51167f0a9e1ffbd379eb3e43e7e767a1a",
         "doc_ids": [
+            "9b154b5d72f987bdd61886cb8a5ca7a6",
             "fc7491790a4dabc22d8fabbbe3cdfe36"
         ],
-        "chunk_count": 5,
-        "vector_count": 5,
+        "chunk_count": 19,
+        "vector_count": 19,
         "embedding_model": "chroma:text-embedding-3-small",
-        "doc_count": 1
+        "doc_count": 2
     },
     "audit_metadata": {
-        "total_chunks_analyzed": 5,
-        "total_documents": 1,
+        "total_chunks_analyzed": 19,
+        "total_documents": 2,
         "total_requirements": 3,
         "total_categories": 3,
         "semantic_threshold": 0.35,
         "top_k_retrieval": 5,
         "embedding_model": "chroma:text-embedding-3-small",
         "score_components": {
-            "doc_coverage": 61,
+            "doc_coverage": 58,
             "kg_completeness": 100,
             "procedure_completeness": 100,
-            "evidence_quality": 61
+            "evidence_quality": 58
         },
-        "audit_duration_ms": 24094.0
+        "audit_duration_ms": 1125.0
     },
-    "last_updated": "2026-07-01T16:41:52.287017+00:00"
+    "last_updated": "2026-07-02T04:54:30.070559+00:00"
 }

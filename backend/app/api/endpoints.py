@@ -197,6 +197,8 @@ async def upload_document(file: UploadFile = File(...)):
         )
 
 
+from app.services.copilot import copilot_service
+
 # ─────────────────────────────────────────────────────────────────────────────
 # QUERY
 # ─────────────────────────────────────────────────────────────────────────────
@@ -220,6 +222,42 @@ async def query_rag(request: QueryRequest):
     except Exception as exc:
         logger.error(f"RAG query error: {exc}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {exc}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXPERT KNOWLEDGE COPILOT
+# ─────────────────────────────────────────────────────────────────────────────
+
+class CopilotMessage(BaseModel):
+    role: str
+    content: str
+
+class CopilotChatRequest(BaseModel):
+    messages: list[CopilotMessage]
+    document_name: Optional[str] = None
+    upload_date: Optional[str] = None
+    document_type: Optional[str] = None
+
+@router.post("/copilot/chat", response_model=QueryResponse)
+async def copilot_chat(request: CopilotChatRequest):
+    """Expert Knowledge Copilot chat endpoint supporting follow-up memory."""
+    try:
+        messages_list = [{"role": msg.role, "content": msg.content} for msg in request.messages]
+        
+        metadata_filter: dict = {}
+        if request.document_name:
+            metadata_filter["document_name"] = request.document_name
+        if request.upload_date:
+            metadata_filter["upload_date"] = request.upload_date
+        if request.document_type:
+            metadata_filter["document_type"] = request.document_type
+            
+        response = copilot_service.answer_copilot(messages_list, metadata_filter=metadata_filter)
+        return response
+    except Exception as exc:
+        logger.error(f"Copilot chat error: {exc}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {exc}")
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
